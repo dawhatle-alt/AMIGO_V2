@@ -11,13 +11,26 @@ generates a tailored interactive Upgrade Plan and Execution Runbook.
 - **Reference material:** `reference/` (Python reference parser, validated UI
   prototypes, skill content to port) — read-only
 
-## Quickstart (after M0)
+## Quickstart
 
 ```
 npm install
-copy .env.local.example .env.local   # add ANTHROPIC_API_KEY
+copy .env.local.example .env.local   # add ANTHROPIC_API_KEY (used from M4)
 npm run dev
 ```
+
+Then open http://localhost:3000.
+
+| Script | What it does |
+|---|---|
+| `npm run dev` | Dev server |
+| `npm run build` | Production build |
+| `npm test` | Vitest — includes the M1 golden test against `fixtures/` |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run lint` | ESLint |
+
+The app is fully offline except AI agent calls. `.env.local` is git-ignored and
+the API key is read only by the server-side `/api/chat` route (M4).
 
 Phase 1: local, file-based, TSA-only. Phase 2: Vercel + Supabase with
 customer share links (PRD §9).

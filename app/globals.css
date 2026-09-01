@@ -1,0 +1,28 @@
+/* Self-hosted IBM Plex (PRD §8) — bundled woff2, no external font requests. */
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/600.css';
+@import '@fontsource/ibm-plex-sans/700.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-canvas text-gray-800 antialiased;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-card border border-gray-200 bg-white;
+  }
+
+  /* Dark terminal block — green on navy, per the approved prototypes. */
+  .terminal {
+    @apply whitespace-pre-wrap overflow-x-auto rounded-lg bg-terminal-bg p-3 font-mono text-[11px] leading-relaxed text-terminal-fg;
+  }
+}

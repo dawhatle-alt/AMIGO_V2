@@ -78,7 +78,7 @@ reference/      # (exists) read-only source material
 ## Current status
 
 - [x] PRD approved (PRD.md v1.0)
-- [ ] M0 Scaffold
+- [x] M0 Scaffold (gate passed 2026-09-01)
 - [ ] M1 Intake & parser port (golden test)
 - [ ] M2 Facts review & confirm
 - [ ] M3 Gap walkthrough
