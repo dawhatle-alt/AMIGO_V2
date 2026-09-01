@@ -5,6 +5,7 @@ import type { ActivityEntry, CaseDocument } from '@/lib/types/case';
 import { createEmptyCase, type NewCaseInput } from '@/lib/case/emptyCase';
 import { downloadCaseFile, parseCaseFile } from '@/lib/case/serialize';
 import { clearActiveCase, loadActiveCase, saveActiveCase } from '@/lib/store/persist';
+import type { ParseResult } from '@/lib/parser';
 
 /**
  * Case state (PRD FR-1/FR-2). Every mutation goes through `mutate`, which
@@ -23,6 +24,9 @@ interface CaseState {
   openCaseFromText: (text: string, fileName: string) => void;
   saveCaseToFile: () => void;
   closeCase: () => void;
+
+  /** Replace facts/gaps/archives with a fresh parse result (M1 intake). */
+  applyParseResult: (result: ParseResult) => void;
 
   /** Apply a change and record it in the audit trail. */
   mutate: (action: string, detail: string, fn: (draft: CaseDocument) => void) => void;
@@ -85,6 +89,26 @@ export const useCaseStore = create<CaseState>((set, get) => ({
   closeCase: () => {
     clearActiveCase();
     set({ doc: null, lastSavedAt: null });
+  },
+
+  applyParseResult: (result) => {
+    const summary = result.summary;
+    get().mutate(
+      'intake.parsed',
+      `${result.meta.archives.map((a) => `${a.file} (${a.product})`).join(', ')} - ` +
+        `${summary.facts_total} facts, ${summary.gaps_total} gaps` +
+        (result.warnings.length > 0 ? `, ${result.warnings.length} warning(s)` : ''),
+      (draft) => {
+        draft.archives = result.meta.archives;
+        draft.facts = result.facts;
+        draft.gaps = result.gaps;
+        // A re-parse invalidates prior confirmations, answers and generated output.
+        draft.confirmations = {};
+        draft.answers = {};
+        draft.plan = { generated_at: '', items: [] };
+        draft.runbook = { steps: [], outage_started_at: null, window_minutes: null };
+      },
+    );
   },
 
   mutate: (action, detail, fn) => {

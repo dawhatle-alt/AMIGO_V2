@@ -79,7 +79,7 @@ reference/      # (exists) read-only source material
 
 - [x] PRD approved (PRD.md v1.0)
 - [x] M0 Scaffold (gate passed 2026-09-01)
-- [ ] M1 Intake & parser port (golden test)
+- [x] M1 Intake & parser port (golden test) (gate passed 2026-09-01)
 - [ ] M2 Facts review & confirm
 - [ ] M3 Gap walkthrough
 - [ ] M4 AI agent

@@ -88,9 +88,13 @@ The AI agent is available on every screen (persistent panel), with per-item
 - FR-3: App works fully offline except AI agent calls.
 
 ### 5.2 Archive Intake & Parsing
-- FR-4: Accept 1–3 `.zip` archives via drag-drop. Detect product per archive
-  (EM / Server / Agent) by directory signature; suffix-match member paths (root
-  folder prefix varies).
+- FR-4: Accept 1–3 archives via drag-drop, in either container format HCU
+  collections arrive in: `.zip` (Windows hosts) or `.tar.gz` / `.tgz` / `.tar`
+  (UNIX hosts) — matching amigo-prefill-parser-SPEC §3. The container is
+  detected from magic bytes, not the file extension, so a renamed archive still
+  parses and an unrecognised one warns rather than failing intake. Detect
+  product per archive (EM / Server / Agent) by directory signature; suffix-match
+  member paths (root folder prefix varies, and `tar czf .` adds a leading `./`).
 - FR-5: Collector-log precheck (`hcu_logs/collector.log`): sections from a failed
   collection yield `UNCOLLECTED`, not `MISSING`.
 - FR-6: Implement the extractor set from amigo-prefill-parser-SPEC v0.1 (X01–X27

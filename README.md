@@ -7,7 +7,9 @@ generates a tailored interactive Upgrade Plan and Execution Runbook.
 
 - **Requirements:** `PRD.md` (authoritative)
 - **Build protocol:** `CLAUDE.md` (milestone gates M0–M8)
-- **Test data:** `fixtures/` (synthetic HCU archives + golden reference output)
+- **Test data:** `fixtures/` (synthetic HCU archives in both container formats
+  + golden reference output). Regenerate the tarballs from their zip twins with
+  `python fixtures/build_tar_fixtures.py`.
 - **Reference material:** `reference/` (Python reference parser, validated UI
   prototypes, skill content to port) — read-only
 

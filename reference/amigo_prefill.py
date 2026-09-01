@@ -10,19 +10,72 @@ close each gap.
 Pure Python stdlib. No LLM. No network. Portable to any agent runtime (Hermes).
 
 Usage:
-  python amigo_prefill.py --archives em.zip server.zip [...] --report facts.json [--sanitize]
+  python amigo_prefill.py --archives em.zip server.tar.gz [...] --report facts.json [--sanitize]
+
+Archives may be .zip (Windows collections) or .tar / .tar.gz / .tgz (UNIX ones);
+the container is detected from magic bytes, not the file extension.
 """
-import argparse, csv, io, json, re, sys, zipfile
+import argparse, csv, io, json, re, sys, tarfile, zipfile
 from datetime import datetime, timezone
 
 PARSER_VERSION = "0.1.0"
 
+
+class ArchiveFormatError(Exception):
+    """Container could not be recognised as a zip or tar HCU collection."""
+
+
+def _detect_format(path):
+    """Identify the container by MAGIC BYTES, not extension — collections get
+    renamed in transit, and a mislabelled archive should still parse."""
+    with open(path, "rb") as fh:
+        head = fh.read(265)
+    if head[:2] == b"PK" and head[2:4] in (b"\x03\x04", b"\x05\x06", b"\x07\x08"):
+        return "zip"
+    if head[:2] == b"\x1f\x8b":
+        return "tar.gz"
+    if head[257:262] == b"ustar":
+        return "tar"
+    raise ArchiveFormatError(
+        f"{path}: unrecognised archive format — expected .zip, .tar or .tar.gz")
+
+
 # ---------------------------------------------------------------- archive ----
 class Archive:
+    """One HCU collection.
+
+    Windows collections arrive as .zip, UNIX ones as .tar.gz/.tgz/.tar. Both
+    are exposed as an ordered member list plus byte/text readers, so every
+    extractor is container-agnostic. Member ORDER is preserved in both paths
+    (X18 depends on it) and nothing here sorts.
+    """
+
     def __init__(self, path):
         self.path = path
-        self.zf = zipfile.ZipFile(path)
-        self.names = [n for n in self.zf.namelist() if not n.endswith("/")]
+        self.format = _detect_format(path)
+        self.zf = None
+        self.tf = None
+        # Normalised member name -> name as stored in the container.
+        self._members = {}
+
+        if self.format == "zip":
+            self.zf = zipfile.ZipFile(path)
+            raw = [n for n in self.zf.namelist() if not n.endswith("/")]
+        else:
+            try:
+                self.tf = tarfile.open(path, "r:*")
+            except tarfile.ReadError as e:
+                raise ArchiveFormatError(f"{path}: not a readable tar archive ({e})")
+            raw = [m.name for m in self.tf.getmembers() if m.isfile()]
+
+        self.names = []
+        for name in raw:
+            # `tar czf` commonly writes paths as `./OS/...`; suffix matching makes
+            # the prefix harmless, but normalising keeps provenance readable.
+            norm = name[2:] if name.startswith("./") else name
+            self._members[norm] = name
+            self.names.append(norm)
+
         self.product = self._detect_product()
         self.host = None
         self.collector_ok = self._collector_ok()
@@ -46,11 +99,22 @@ class Archive:
         rx = re.compile(pattern)
         return [n for n in self.names if rx.search(n)]
 
+    def read_bytes(self, member):
+        """Raw bytes of a member, whichever container this archive came from."""
+        stored = self._members[member]
+        if self.zf is not None:
+            return self.zf.read(stored)
+        fh = self.tf.extractfile(stored)
+        if fh is None:
+            return b""
+        with fh:
+            return fh.read()
+
     def read(self, suffix):
         m = self.find(suffix)
         if m is None:
             return None, None
-        return self.zf.read(m).decode("utf-8", errors="replace"), m
+        return self.read_bytes(m).decode("utf-8", errors="replace"), m
 
     def _collector_ok(self):
         text, _ = self.read("hcu_logs/collector.log")
@@ -107,7 +171,7 @@ def x02_check_config(ar, F):
     if not reports:
         return
     m = reports[-1]  # latest by timestamp in name
-    data = json.loads(ar.zf.read(m))
+    data = json.loads(ar.read_bytes(m))
     s = src(ar, m)
     F.add("em.version", data.get("version"), "EXACT", s, "X02")
     F.add("em.home", data.get("location"), "EXACT", s, "X02")
@@ -143,7 +207,7 @@ def x05_db(ar, F):
     pg = ar.find("pg_settings-table.csv")
     ora = ar.find_all(r"/db/oracle/")
     if pg:
-        text = ar.zf.read(pg).decode("utf-8", "replace")
+        text = ar.read_bytes(pg).decode("utf-8", "replace")
         vm = re.search(r"server_version\D+([\d.]+)", text)
         F.add("db.type", "PostgreSQL", "EXACT", src(ar, pg), "X05")
         if vm:
@@ -382,7 +446,8 @@ def build_gaps(F):
 # -------------------------------------------------------------------- main ---
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--archives", nargs="+", required=True)
+    ap.add_argument("--archives", nargs="+", required=True,
+                    help="HCU archives: .zip, .tar, .tar.gz or .tgz")
     ap.add_argument("--report", default="environment_facts.json")
     ap.add_argument("--sanitize", action="store_true")
     args = ap.parse_args()
