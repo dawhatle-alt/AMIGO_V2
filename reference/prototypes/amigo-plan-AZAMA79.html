@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMIGO Upgrade Plan — AZAMA79 — Control-M 9.0.21 FP3 → 9.0.22</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:#f5f6f8;color:#1f2937;line-height:1.5}
+.ctr{max-width:780px;margin:0 auto;padding:24px 16px}
+.hdr{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.hdr-icon{width:44px;height:44px;background:#2563eb;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px}
+.hdr h1{font-size:20px;font-weight:700;color:#111827}
+.hdr p{font-size:13px;color:#6b7280}
+.prog{background:#f9fafb;border:1px solid #e5e7eb;border-radius:14px;padding:18px;margin-bottom:20px}
+.prog-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.prog-lbl{font-size:13px;font-weight:600;color:#374151}
+.prog-pct{font-size:26px;font-weight:700;color:#2563eb;font-family:'IBM Plex Mono',monospace}
+.bar{width:100%;height:12px;background:#e5e7eb;border-radius:6px;overflow:hidden;margin-bottom:10px}
+.bar-fill{height:100%;background:#2563eb;border-radius:6px;transition:width .5s}
+.stats{display:flex;gap:16px;font-size:12px;flex-wrap:wrap}
+.s-bl{color:#dc2626;font-weight:600}.s-wa{color:#d97706;font-weight:600}
+.filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.fbtn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:#f3f4f6;color:#4b5563;transition:all .15s}
+.fbtn:hover{background:#e5e7eb}.fbtn.on{background:#2563eb;color:#fff}
+.exp-btn{margin-left:auto;display:flex;align-items:center;gap:4px}
+.sec{border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;background:#fff;margin-bottom:12px}
+.sec-hdr{width:100%;display:flex;align-items:center;gap:12px;padding:16px;cursor:pointer;border:none;background:none;text-align:left;transition:background .15s;font-family:inherit;font-size:inherit;color:inherit}
+.sec-hdr:hover{background:#f9fafb}
+.sec-title{flex:1;font-size:14px;font-weight:600;color:#111827}
+.sec-cnt{font-size:12px;color:#9ca3af;font-family:'IBM Plex Mono',monospace}
+.sec-icon{color:#2563eb;font-size:16px;width:20px;text-align:center}
+.chev{color:#9ca3af;font-size:14px;width:16px;transition:transform .2s;display:inline-block}
+.chev.open{transform:rotate(90deg)}
+.sec-body{border-top:1px solid #f3f4f6}
+.item{border-bottom:1px solid #f9fafb;padding:12px 16px;display:flex;gap:12px;align-items:flex-start}
+.item:last-child{border-bottom:none}.item.done{opacity:.55}
+.sbtn{flex-shrink:0;width:22px;height:22px;border:none;cursor:pointer;background:none;padding:0;margin-top:2px;font-size:20px;line-height:1}
+.ic{flex:1;min-width:0}
+.itxt{font-size:13px;color:#1f2937}.item.done .itxt{text-decoration:line-through;color:#9ca3af}
+.badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:10px;display:inline-block;margin-left:6px;vertical-align:middle}
+.b-bl{background:#fee2e2;color:#991b1b}.b-wa{background:#fef3c7;color:#92400e}
+.dtgl{font-size:12px;color:#2563eb;cursor:pointer;border:none;background:none;padding:0;margin-top:6px;font-weight:500;display:flex;align-items:center;gap:4px;font-family:inherit}
+.dtgl:hover{color:#1e40af}
+.dp{margin-top:8px;padding:12px;border-radius:8px;border:1px solid;font-size:12px}
+.dp-bl{background:#fef2f2;border-color:#fca5a5}.dp-wa{background:#fffbeb;border-color:#fcd34d}.dp-cl{background:#ecfdf5;border-color:#a7f3d0}
+.dtxt{color:#374151;line-height:1.6;margin-bottom:8px;white-space:pre-wrap}
+.ch,.rh{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-weight:600;font-size:12px;color:#4b5563}
+.cmd{background:#1a1a2e;color:#4ade80;padding:12px;border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:pre-wrap;overflow-x:auto;margin-bottom:10px;line-height:1.6}
+.rl{display:flex;align-items:center;gap:6px;font-size:12px;color:#1d4ed8;text-decoration:none;padding:2px 0}
+.rl:hover{color:#1e3a8a;text-decoration:underline}
+.notice{padding:16px;border-radius:14px;font-size:12px;margin-top:24px}
+.n-am{background:#fffbeb;border:1px solid #fde68a;color:#92400e}
+.n-bl{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;margin-top:10px}
+.notice strong{display:block;margin-bottom:4px}
+.notice a{color:inherit;font-weight:500}
+.qlinks{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px}
+.qlinks a{display:flex;align-items:center;gap:4px;font-size:12px;color:#1e40af;text-decoration:none}
+.qlinks a:hover{text-decoration:underline}
+.footer{text-align:center;font-size:11px;color:#9ca3af;margin-top:20px;padding:10px}
+@media(max-width:600px){.qlinks{grid-template-columns:1fr}.stats{flex-direction:column;gap:4px}}
+</style>
+</head>
+<body>
+<div class="ctr" id="app"></div>
+<script>
+const D=[
+{id:"env",title:"Environment Summary — AZAMA79",icon:"🖥",items:[
+{id:"e1",text:"Control-M/EM: 9.0.21 FP3 → 9.0.22.000 | Windows Server 2019 | MS SQL | Standalone",st:"done",rk:"clear",dt:"Host: AZAMA79. EM and Server co-located on same Windows machine, same drive.",refs:[{l:"Control-M Upgrade Guide 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_upgrade.htm"},{l:"PAC Compatibility Tool",u:"https://docs.bmc.com/xwiki/bin/view/Standalone/BMC-Product-Compatibility/compatibility/"}]},
+{id:"e2",text:"Control-M/Server: 9.0.21 FP3 → 9.0.22.000 | Windows Server 2019 | MS SQL | Standalone",st:"done",rk:"clear",dt:"Same host as EM (AZAMA79). Upgrade EM first, then Server.",refs:[{l:"Control-M Upgrade Guide 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_upgrade.htm"}]},
+{id:"e3",text:"Add-on Components: BIM, Forecast, AAPI, Self Service, App Integrator, MFT",st:"done",rk:"warning",dt:"6 add-on components identified. Each needs post-upgrade verification. AAPI requires CTM CLI update.",refs:[{l:"KA 000419428 — AAPI CLI OS Support 🔒",u:"https://selfservice.bmc.com/casemgmt/sc_KnowledgeArticle?sfdcid=kA114000000pCJgCAM"}]},
+{id:"e4",text:"Daily jobs: EM 0-500K | Server 0-150K",st:"done",rk:"clear",dt:"Medium environment.",refs:[{l:"KA 000308729 — PSR Sizing 🔒",u:"https://selfservice.bmc.com/casemgmt/sc_KnowledgeArticle?sfdcid=kA114000000HBdGCAW"}]},
+{id:"e5",text:"Upgrade date: April 1st | Downtime window: NOT SPECIFIED",st:"todo",rk:"blocker",dt:"⚠️ Customer has not specified the downtime window. Must be defined. Both EM and Server share AZAMA79 so they share the same outage.",refs:[]},
+{id:"e6",text:"Database: MS SQL — PostgreSQL upgrade NOT applicable",st:"done",rk:"clear",dt:"Customer uses MS SQL. PostgreSQL 11.5→15.3 steps do not apply.",refs:[]},
+{id:"e7",text:"Compatibility Mode: ACTIVE at version 9.0.21.100",st:"done",rk:"warning",dt:"Above the 9.0.19 threshold — upgrade to 9.0.22 is allowed. Customer must plan when to upgrade EM clients and disable Compatibility Mode. Once turned off, it CANNOT be re-enabled.",refs:[{l:"Compatibility Mode 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_upgrade.htm#CompatibilityMode"},{l:"KA 000401828 — FAQ 🔒",u:"https://selfservice.bmc.com/casemgmt/sc_KnowledgeArticle?sfdcid=kA114000000pDZpCAM"}]}
+]},
+{id:"risk",title:"🔴 Blockers & Critical Risks",icon:"⚠",items:[
+{id:"r1",text:"BLOCKER: Agents connected to TWO Servers simultaneously",st:"todo",rk:"blocker",dt:"Customer answered 'No' to 'Are agents only connected to one active Server?' This is NOT SUPPORTED. Must be resolved before upgrade. Why are agents on two servers? What's the decommission plan?",refs:[{l:"Server-Agent Communication 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_Server-Agent_Communication.htm"}]},
+{id:"r2",text:"BLOCKER: Downtime window not specified",st:"todo",rk:"blocker",dt:"Must define the outage window. Both EM and Server share AZAMA79 — single outage needed.",refs:[]},
+{id:"r3",text:"BLOCKER: Fallback plan not created or verified",st:"todo",rk:"blocker",dt:"Must create a documented rollback procedure including MS SQL backup/restore before proceeding.",refs:[{l:"Control-M Upgrade — Downgrade 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_upgrade.htm"}]},
+{id:"r4",text:"Control Modules require separate migration",st:"todo",rk:"warning",dt:"Not part of in-place upgrade. Open separate case to migrate Control Module accounts.",refs:[]},
+{id:"r5",text:"EM client upgrade plan not defined",st:"todo",rk:"warning",dt:"EM stays in Compatibility Mode (9.0.21.100) until all clients upgraded. Must define timeline.",refs:[{l:"Compatibility Mode 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_upgrade.htm#CompatibilityMode"}]},
+{id:"r6",text:"Customer has NOT reviewed upgrade documentation",st:"todo",rk:"warning",dt:"Questions 6-10 all answered 'No'. Must review Upgrade Guide, PAC Tool, and sample plans.",refs:[{l:"Control-M 9.0.22 Upgrade Guide 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_upgrade.htm"},{l:"PAC Compatibility Tool",u:"https://docs.bmc.com/xwiki/bin/view/Standalone/BMC-Product-Compatibility/compatibility/"}]}
+]},
+{id:"pre-em",title:"Pre-Upgrade: Enterprise Manager",icon:"🛡",items:[
+{id:"pe1",text:"Verify OS & DB compatibility via PAC Tool",st:"todo",rk:"warning",dt:"Windows Server 2019 + MS SQL — verify both supported with 9.0.22.",refs:[{l:"PAC Tool",u:"https://docs.bmc.com/xwiki/bin/view/Standalone/BMC-Product-Compatibility/compatibility/"},{l:"9.0.22 Compatibility",u:"https://docs.bmc.com/xwiki/bin/view/Control-M-Orchestration/Control-M/ctm9022/Control-M-9-0-22-Release-Notes/Control-M-Compatibility/"}]},
+{id:"pe2",text:"Run check_req script on AZAMA79",st:"todo",rk:"warning",dt:"Verifies OS level and patches meet 9.0.22 requirements.",cmd:"REM Windows — from install media:\ncd <install_media>\\CheckReq\ncheckReqRun.bat\n\nREM Outputs whether OS/patches meet requirements.",refs:[{l:"Pre-Installation Procedures 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_pre-installation_procedures_on_UNIX.htm"},{l:"EM System Requirements 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_Enterprise_Manager_installation.htm#ControlMEMSystemRequirements"}]},
+{id:"pe3",text:"Run ctmsetown -action list — check for NOTIMPL",st:"todo",rk:"warning",dt:"Customer left unanswered. Must run before upgrade.",cmd:"REM Windows command prompt as EM Administrator:\nctmsetown -action list\n\nREM Check for NOTIMPL entries:\nREM &ctmagent@FIELD  &bh3jbolpv05@FIELD  &P@FIELD  &NOTIMPL@LINE\nREM If found → KA 000354649",refs:[{l:"ctmsetown Utility 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Utilities/ctmsetown.htm"},{l:"KA 000354649 — NOTIMPL 🔒",u:"https://selfservice.bmc.com/casemgmt/sc_KnowledgeArticle?sfdcid=kA114000000pA8DCAU"}]},
+{id:"pe4",text:"Run is_upgrade_ready script",st:"todo",rk:"warning",dt:"Not run yet. Available on DROST.9.0.22.000 install file.",cmd:"REM Windows:\ncd <install_media>\\UpgradeReady\\upgrade_ready\nis_upgrade_ready.bat\n\nREM Summary + path to full report appears.",refs:[{l:"Upgrade — Verifying Readiness 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_upgrade.htm"}]},
+{id:"pe5",text:"Latest EM fix pack installed (FP3)",st:"done",rk:"clear",dt:"Confirmed. ✓",refs:[]},
+{id:"pe6",text:"12 GB+ free disk space",st:"done",rk:"clear",dt:"Confirmed. ✓",refs:[]},
+{id:"pe7",text:"Set External Java Environment Variable",st:"todo",rk:"warning",dt:"9.0.22 requires external Java. Java 17 recommended.",cmd:"REM Windows:\nsetx BMC_JAVA_HOME \"C:\\Program Files\\Java\\jdk-17\" /M\n\nREM Verify:\n\"%BMC_JAVA_HOME%\\bin\\java\" -version",refs:[{l:"External Java Installation 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Java_Installation.htm"},{l:"KA 000401084 — Java Versions 🔒",u:"https://selfservice.bmc.com/casemgmt/sc_KnowledgeArticle?sfdcid=kA114000000pDVGCA2"},{l:"Java 11 End of Support",u:"https://docs.bmc.com/xwiki/bin/view/Control-M-Orchestration/Control-M/ctm9021/Technical-Bulletins/Announcements/Deprecation-and-End-of-Support/Java-11-LTS-on-Control-M-EM-Control-M-Server-Control-M-Agent-Control-M-Plug-ins-and-Control-M-Automation-API-End-of-Support/"}]},
+{id:"pe8",text:"Antivirus / monitoring exclusions",st:"todo",rk:"warning",dt:"Unanswered. If AV/monitoring runs on AZAMA79, exclude Control-M users, processes, ports, files, directories.",refs:[{l:"Firewall Config 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Firewall.htm"}]},
+{id:"pe9",text:"Firewall rules verified",st:"todo",rk:"warning",dt:"Unanswered. EM↔Server on same host so inter-component rules may not apply, but Server↔Agent rules must be verified.",refs:[{l:"Firewall Config 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Firewall.htm"}]},
+{id:"pe10",text:"Latest EM patch 9.0.22.026 — install post-upgrade",st:"todo",rk:"clear",dt:"Customer wasn't aware.",refs:[{l:"EM Patch 9.0.22.026",u:"https://docs.bmc.com/xwiki/bin/view/Control-M-Orchestration/Control-M/ctm9022/Patches/Control-M-EM-PANFT-9-0-22-026/"},{l:"All 9.0.22 Patches",u:"https://docs.bmc.com/xwiki/bin/view/Control-M-Orchestration/Control-M/ctm9022/Patches/"}]},
+{id:"pe11",text:"EM client requirements verified",st:"todo",rk:"clear",dt:"Customer answered 'No'. Verify Chrome 78+, Edge 80+, .NET 4.7.2, Java 1.8+.",refs:[]},
+{id:"pe12",text:"Not upgrading to different machine (in-place)",st:"done",rk:"clear",dt:"Confirmed. ✓",refs:[]},
+{id:"pe13",text:"Not upgrading z/OS",st:"done",rk:"clear",dt:"Confirmed. ✓",refs:[]},
+{id:"pe14",text:"EM components stop/start verified",st:"done",rk:"clear",dt:"Confirmed Done. ✓",refs:[{l:"KA 000286154 — Verify Web Server 🔒",u:"https://selfservice.bmc.com/casemgmt/sc_KnowledgeArticle?sfdcid=kA114000000H8URCA0"}]},
+{id:"pe15",text:"Copy EM 9.0.22 binary to AZAMA79",st:"todo",rk:"clear",dt:"Stage before upgrade window.",refs:[{l:"Obtaining Installation Files 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Introduction_to_Control-M_Installation.htm"}]},
+{id:"pe16",text:"Backup existing EM environment",st:"todo",rk:"blocker",dt:"CRITICAL: Full backup of EM installation + MS SQL database.",cmd:"REM MS SQL backup (SSMS or sqlcmd):\nBACKUP DATABASE [ControlM_EM]\nTO DISK = 'D:\\Backups\\ControlM_EM_pre_upgrade.bak'\nWITH FORMAT, INIT, COMPRESSION;\n\nREM EM installation backup:\nrobocopy \"C:\\Program Files\\BMC Software\\Control-M EM\" \"D:\\Backups\\EM_Install\" /E /R:1",refs:[{l:"Upgrade Guide 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_upgrade.htm"}]}
+]},
+{id:"pre-srv",title:"Pre-Upgrade: Control-M/Server",icon:"🖧",items:[
+{id:"ps1",text:"Run ctmsetown -action list on Server",st:"todo",rk:"warning",dt:"Unanswered. Must run before upgrade.",cmd:"REM As Server Administrator:\nctmsetown -action list\n\nREM If NOTIMPL found → KA 000354649",refs:[{l:"ctmsetown Utility 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Utilities/ctmsetown.htm"},{l:"KA 000354649 🔒",u:"https://selfservice.bmc.com/casemgmt/sc_KnowledgeArticle?sfdcid=kA114000000pA8DCAU"}]},
+{id:"ps2",text:"Machine meets minimum requirements",st:"done",rk:"clear",dt:"Confirmed. ✓",refs:[]},
+{id:"ps3",text:"12 GB+ free disk space",st:"done",rk:"clear",dt:"Confirmed. ✓",refs:[]},
+{id:"ps4",text:"Latest Server FP3 installed",st:"done",rk:"clear",dt:"Confirmed. ✓",refs:[]},
+{id:"ps5",text:"Verify Server exe directory in system PATH",st:"todo",rk:"warning",dt:"Unanswered. Admin must be able to run SQL.",cmd:"REM Verify:\necho %PATH% | find /I \"Control-M Server\"\n\nREM Test:\nsql\n\nREM If not found → add via System Properties > Environment Variables",refs:[{l:"KA 000358019 🔒",u:"https://selfservice.bmc.com/casemgmt/sc_KnowledgeArticle?sfdcid=kA114000000pA97CAE"}]},
+{id:"ps6",text:"Set BMC_INST_CTM_APIGTW_PORT=8393",st:"todo",rk:"warning",dt:"Required BEFORE Server upgrade.",cmd:"REM Windows:\nset BMC_INST_CTM_APIGTW_PORT=8393",refs:[{l:"Upgrade Guide 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_upgrade.htm"}]},
+{id:"ps7",text:"Set External Java (same as EM — shared host)",st:"todo",rk:"warning",dt:"Java 17 recommended.",cmd:"setx BMC_JAVA_HOME \"C:\\Program Files\\Java\\jdk-17\" /M",refs:[{l:"Java Installation 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Java_Installation.htm"}]},
+{id:"ps8",text:"Change cutoff implemented",st:"done",rk:"clear",dt:"Confirmed Done. ✓",refs:[]},
+{id:"ps9",text:"EM ≥ Server version confirmed",st:"done",rk:"clear",dt:"Both 9.0.21 FP3. EM upgraded first. ✓",refs:[]},
+{id:"ps10",text:"Server patch 9.0.22.025 — install post-upgrade",st:"todo",rk:"clear",dt:"Customer wasn't aware.",refs:[{l:"Server Patch 9.0.22.025",u:"https://docs.bmc.com/xwiki/bin/view/Control-M-Orchestration/Control-M/ctm9022/Patches/Control-M-Server-PACTV-9-0-22-025/"}]},
+{id:"ps11",text:"No hostname change",st:"done",rk:"clear",dt:"Confirmed. ✓",refs:[]},
+{id:"ps12",text:"No Data Center rename",st:"done",rk:"clear",dt:"Confirmed. ✓",refs:[]},
+{id:"ps13",text:"Single Server on this box",st:"done",rk:"clear",dt:"Confirmed. ✓",refs:[]},
+{id:"ps14",text:"Server not HA",st:"done",rk:"clear",dt:"Standalone. ✓",refs:[]},
+{id:"ps15",text:"Agent upgrade planned — Server FIRST",st:"done",rk:"warning",dt:"Customer said Yes to concurrent. IMPORTANT: upgrade Server first, then agents.",refs:[]},
+{id:"ps16",text:"Backup existing Server environment",st:"todo",rk:"blocker",dt:"CRITICAL: Full backup of Server + MS SQL database.",cmd:"BACKUP DATABASE [ControlM_Server]\nTO DISK = 'D:\\Backups\\ControlM_Server_pre_upgrade.bak'\nWITH FORMAT, INIT, COMPRESSION;\n\nrobocopy \"C:\\Program Files\\BMC Software\\Control-M Server\" \"D:\\Backups\\Server_Install\" /E /R:1",refs:[{l:"Upgrade Guide 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_upgrade.htm"}]}
+]},
+{id:"fb",title:"Fallback / Back-Out Plan",icon:"🔄",items:[
+{id:"fb1",text:"Create documented fallback plan",st:"todo",rk:"blocker",dt:"Include: MS SQL restore, EM/Server uninstall (reverts to previous), validation checks, communication plan.",refs:[{l:"Upgrade — Downgrade 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_upgrade.htm"}]},
+{id:"fb2",text:"Test fallback procedures",st:"todo",rk:"warning",dt:"Verify MS SQL restore works before upgrade day.",cmd:"REM Test restore:\nRESTORE DATABASE [ControlM_EM_TEST]\nFROM DISK = 'D:\\Backups\\ControlM_EM_pre_upgrade.bak'\nWITH REPLACE, RECOVERY;",refs:[]},
+{id:"fb3",text:"Define post-upgrade testing plan",st:"todo",rk:"warning",dt:"Customer hasn't confirmed. Must define functional tests.",refs:[]}
+]},
+{id:"upgrade",title:"Upgrade Sequence (Same Host — EM First, Then Server)",icon:"⬆",items:[
+{id:"u1",text:"Verify scheduling tables in sync (EM ↔ Server)",st:"todo",rk:"warning",dt:"Check via CCM before starting.",refs:[{l:"EM System Parameters 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Configuring_Control-M_EM_System_Parameters.htm"}]},
+{id:"u2",text:"Stop all Control-M components on AZAMA79",st:"todo",rk:"clear",dt:"EM and Server on same host — stop everything. EM first, then Server.",cmd:"REM Stop EM:\nem_ctl stop\n\nREM Stop Server:\nctmsys -action SHUT_AGENT\nshut_ctm\n\nREM Verify all processes stopped",refs:[]},
+{id:"u3",text:"Step 1: Upgrade Control-M/EM on Windows",st:"todo",rk:"clear",dt:"Run from installation media. Follow wizard.",cmd:"REM From install media:\nsetup.exe\nREM Select Control-M/Enterprise Manager\nREM Follow on-screen instructions",refs:[{l:"Upgrade Guide — EM on Windows 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_upgrade.htm"}]},
+{id:"u4",text:"Verify EM is running",st:"todo",rk:"clear",dt:"",cmd:"em_ctl status",refs:[{l:"KA 000286154 — Verify Web Server 🔒",u:"https://selfservice.bmc.com/casemgmt/sc_KnowledgeArticle?sfdcid=kA114000000H8URCA0"}]},
+{id:"u5",text:"Launch CCM — verify components, hostnames, ports",st:"todo",rk:"clear",dt:"",refs:[]},
+{id:"u6",text:"Step 2: Upgrade Control-M/Server on Windows",st:"todo",rk:"clear",dt:"Ensure BMC_INST_CTM_APIGTW_PORT=8393 is set.",cmd:"echo %BMC_INST_CTM_APIGTW_PORT%\nREM Should output: 8393\n\nsetup.exe\nREM Select Control-M/Server",refs:[{l:"Upgrade Guide — Server on Windows 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_upgrade.htm"}]},
+{id:"u7",text:"Verify Server is running",st:"todo",rk:"clear",dt:"",cmd:"ctm_menu\nREM Or:\nctmgetcm -DISPLAY ALL",refs:[]},
+{id:"u8",text:"Step 3: Upgrade Agents (AFTER Server)",st:"todo",rk:"clear",dt:"Server must complete first.",refs:[]},
+{id:"u9",text:"Upgrade EM Clients",st:"todo",rk:"clear",dt:"Until all upgraded, EM stays in Compatibility Mode (9.0.21.100).",refs:[]}
+]},
+{id:"verify",title:"Post-Upgrade Verification",icon:"✓",items:[
+{id:"v1",text:"All EM Components and Gateways running",st:"todo",rk:"clear",dt:"",cmd:"em_ctl status",refs:[]},
+{id:"v2",text:"EM GUI — jobs in Planning & Monitoring",st:"todo",rk:"clear",dt:"",refs:[]},
+{id:"v3",text:"Order new test jobs",st:"todo",rk:"clear",dt:"",refs:[]},
+{id:"v4",text:"View job definitions",st:"todo",rk:"clear",dt:"",refs:[]},
+{id:"v5",text:"Verify viewpoints",st:"todo",rk:"clear",dt:"",refs:[]},
+{id:"v6",text:"Add/delete resources",st:"todo",rk:"clear",dt:"",refs:[]},
+{id:"v7",text:"Access sysout and log files",st:"todo",rk:"clear",dt:"",refs:[]},
+{id:"v8",text:"AJF actions: hold, update, free, rerun",st:"todo",rk:"clear",dt:"",refs:[]},
+{id:"v9",text:"Security: view or add a user",st:"todo",rk:"clear",dt:"",refs:[]},
+{id:"v10",text:"Server: jobs running, agents connected",st:"todo",rk:"clear",dt:"",cmd:"ctmgetcm -DISPLAY ALL",refs:[]},
+{id:"v11",text:"Verify BIM functioning",st:"todo",rk:"clear",dt:"",refs:[]},
+{id:"v12",text:"Verify Forecast functioning",st:"todo",rk:"clear",dt:"",refs:[]},
+{id:"v13",text:"Verify AAPI + CTM CLI",st:"todo",rk:"clear",dt:"CTM CLI must be updated.",cmd:"ctm session login -e https://AZAMA79:8443/automation-api -u <user> -p <pass>",refs:[{l:"Automation API 🔒",u:"https://documents.bmc.com/supportu/API/Monthly/en-US/Documentation/home.htm"}]},
+{id:"v14",text:"Verify Self Service",st:"todo",rk:"clear",dt:"",refs:[]},
+{id:"v15",text:"Verify Application Integrator",st:"todo",rk:"clear",dt:"",refs:[]},
+{id:"v16",text:"Verify MFT",st:"todo",rk:"clear",dt:"Run a test MFT job.",refs:[]},
+{id:"v17",text:"EM Gateway connected to Server",st:"todo",rk:"clear",dt:"Check in CCM.",refs:[]}
+]},
+{id:"post",title:"Post-Upgrade Tasks",icon:"📋",items:[
+{id:"pt1",text:"Backup new EM + Server environment",st:"todo",rk:"clear",dt:"",refs:[]},
+{id:"pt2",text:"Assign user authorizations to roles (new in 9.0.22)",st:"todo",rk:"warning",dt:"Authorizations are now roles-based only. Must migrate.",refs:[{l:"Upgrade Requirements — Authorizations 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_upgrade.htm#UpgradeRequirementsandConsiderations"}]},
+{id:"pt3",text:"Install EM patch 9.0.22.026",st:"todo",rk:"clear",dt:"",refs:[{l:"EM Patch 9.0.22.026",u:"https://docs.bmc.com/xwiki/bin/view/Control-M-Orchestration/Control-M/ctm9022/Patches/Control-M-EM-PANFT-9-0-22-026/"}]},
+{id:"pt4",text:"Install Server patch 9.0.22.025",st:"todo",rk:"clear",dt:"",refs:[{l:"Server Patch 9.0.22.025",u:"https://docs.bmc.com/xwiki/bin/view/Control-M-Orchestration/Control-M/ctm9022/Patches/Control-M-Server-PACTV-9-0-22-025/"}]},
+{id:"pt5",text:"Disable Compatibility Mode (ONLY after ALL clients upgraded)",st:"todo",rk:"blocker",dt:"⚠️ IRREVERSIBLE. Currently at 9.0.21.100. CCM → Manage → Compatibility Mode → Turn Off.",refs:[{l:"Compatibility Mode 🔒",u:"https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_upgrade.htm#CompatibilityMode"},{l:"KA 000401828 — FAQ 🔒",u:"https://selfservice.bmc.com/casemgmt/sc_KnowledgeArticle?sfdcid=kA114000000pDZpCAM"}]},
+{id:"pt6",text:"Open separate case for Control Module migration",st:"todo",rk:"warning",dt:"Not upgraded during in-place upgrade.",refs:[]},
+{id:"pt7",text:"Resolve dual-Server agent connectivity",st:"todo",rk:"blocker",dt:"Agents on two Servers is unsupported. Must resolve.",refs:[]},
+{id:"pt8",text:"Review KA 000415171 — post-upgrade considerations",st:"todo",rk:"clear",dt:"",refs:[{l:"KA 000415171 🔒",u:"https://selfservice.bmc.com/casemgmt/sc_KnowledgeArticle?sfdcid=kA114000000pCSvCAM"}]}
+]}
+];
+
+let st={expanded:{env:true,risk:true},ei:{},filter:'all'};
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function cycle(sId,iId){const s=D.find(x=>x.id===sId);const i=s.items.find(x=>x.id===iId);i.st=i.st==='todo'?'done':i.st==='done'?'na':'todo';render()}
+function getStats(){const a=D.flatMap(s=>s.items),ap=a.filter(i=>i.st!=='na'),dn=a.filter(i=>i.st==='done'),bl=a.filter(i=>i.rk==='blocker'&&i.st==='todo'),wa=a.filter(i=>i.rk==='warning'&&i.st==='todo');return{t:a.length,ap:ap.length,dn:dn.length,bl:bl.length,wa:wa.length,pct:ap.length?Math.round(dn.length/ap.length*100):0}}
+function exportPlan(){const s=getStats();let t=`AMIGO UPGRADE PLAN — AZAMA79\nGenerated: ${new Date().toLocaleString()}\nProgress: ${s.pct}% (${s.dn}/${s.ap})\nBlockers: ${s.bl} | Actions: ${s.wa}\n\n🔒 Links marked 🔒 require BMC Support Central login: https://www.bmc.com/support\n\n`;
+D.forEach(sec=>{t+='='.repeat(60)+'\n'+sec.icon+' '+sec.title+'\n'+'='.repeat(60)+'\n';sec.items.forEach(i=>{const m=i.st==='done'?'✅':i.st==='na'?'➖':'⬜';const r=i.rk==='blocker'?' 🔴 BLOCKER':i.rk==='warning'?' 🟡 ACTION':'';t+=`\n${m}${r} ${i.text}\n`;if(i.dt)t+=`   ${i.dt}\n`;if(i.cmd)t+=`   Command:\n${i.cmd.split('\n').map(l=>'      '+l).join('\n')}\n`;if(i.refs?.length){t+='   References:\n';i.refs.forEach(r=>t+=`      • ${r.l}: ${r.u}\n`)}});t+='\n'});
+const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/plain'}));a.download='amigo-upgrade-plan-AZAMA79.txt';a.click()}
+
+function render(){const s=getStats();const f=st.filter;let h='';
+h+=`<div class="hdr"><div class="hdr-icon">🛡</div><div><h1>AMIGO Upgrade Plan — AZAMA79</h1><p>Control-M 9.0.21 FP3 → 9.0.22 | EM + Server | Windows 2019 | MS SQL | April 1st</p></div></div>`;
+h+=`<div class="prog"><div class="prog-top"><span class="prog-lbl">Overall progress</span><span class="prog-pct">${s.pct}%</span></div><div class="bar"><div class="bar-fill" style="width:${s.pct}%"></div></div><div class="stats"><span style="color:#4b5563">${s.dn}/${s.ap} items</span>${s.bl?`<span class="s-bl">🔴 ${s.bl} blockers</span>`:''}${s.wa?`<span class="s-wa">🟡 ${s.wa} actions needed</span>`:''}</div></div>`;
+h+=`<div class="filters">`;['all','todo','blockers','warnings'].forEach(k=>{const l=k==='all'?'All':k==='todo'?'To Do':k==='blockers'?`Blockers (${s.bl})`:`Actions (${s.wa})`;h+=`<button class="fbtn ${f===k?'on':''}" onclick="st.filter='${k}';render()">${l}</button>`});
+h+=`<button class="fbtn exp-btn" onclick="exportPlan()">⬇ Export Full Plan</button></div>`;
+
+D.forEach(sec=>{let items=sec.items;
+if(f==='todo')items=items.filter(i=>i.st==='todo');
+else if(f==='blockers')items=items.filter(i=>i.rk==='blocker'&&i.st==='todo');
+else if(f==='warnings')items=items.filter(i=>(i.rk==='warning'||i.rk==='blocker')&&i.st==='todo');
+if(!items.length)return;
+const dn=sec.items.filter(i=>i.st==='done').length,tot=sec.items.filter(i=>i.st!=='na').length,op=st.expanded[sec.id];
+h+=`<div class="sec"><div class="sec-hdr" onclick="st.expanded['${sec.id}']=!st.expanded['${sec.id}'];render()"><span class="chev ${op?'open':''}">▶</span><span class="sec-icon">${sec.icon}</span><span class="sec-title">${esc(sec.title)}</span><span class="sec-cnt">${dn}/${tot}</span></div>`;
+if(op){h+=`<div class="sec-body">`;items.forEach(i=>{const ico=i.st==='done'?'✅':i.st==='na'?'➖':'⬜';const dp=i.rk==='blocker'?'dp-bl':i.rk==='warning'?'dp-wa':'dp-cl';const bd=i.rk==='blocker'?'b-bl':'b-wa';const hd=i.dt||i.cmd||(i.refs&&i.refs.length);const ie=st.ei[i.id];
+h+=`<div class="item ${i.st==='done'?'done':''}"><button class="sbtn" onclick="cycle('${sec.id}','${i.id}')">${ico}</button><div class="ic"><div><span class="itxt">${esc(i.text)}</span>`;
+if(i.rk!=='clear'&&i.st==='todo')h+=`<span class="badge ${bd}">${i.rk==='blocker'?'Blocker':'Action Needed'}</span>`;
+h+=`</div>`;
+if(hd)h+=`<button class="dtgl" onclick="st.ei['${i.id}']=!st.ei['${i.id}'];render()">${ie?'▾ Hide details':'▸ Details, commands & references'}</button>`;
+if(ie&&hd){h+=`<div class="dp ${dp}">`;
+if(i.dt)h+=`<div class="dtxt">${esc(i.dt)}</div>`;
+if(i.cmd)h+=`<div class="ch">⌨ Command syntax</div><pre class="cmd">${esc(i.cmd)}</pre>`;
+if(i.refs&&i.refs.length){h+=`<div class="rh">📖 References</div>`;i.refs.forEach(r=>{h+=`<a class="rl" href="${esc(r.u)}" target="_blank" rel="noopener noreferrer">↗ ${esc(r.l)}</a>`})}
+h+=`</div>`}
+h+=`</div></div>`});h+=`</div>`}h+=`</div>`});
+
+h+=`<div class="notice n-am"><strong>🔒 BMC Documentation Note</strong>Links marked with 🔒 require a <a href="https://www.bmc.com/support" target="_blank">BMC Support Central login</a>. Log in first, then click doc links. Patch and bulletin links (docs.bmc.com) are publicly accessible.</div>`;
+h+=`<div class="notice n-bl"><strong>Quick reference</strong><div class="qlinks"><a href="https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_upgrade.htm" target="_blank">↗ Upgrade Guide 🔒</a><a href="https://docs.bmc.com/xwiki/bin/view/Standalone/BMC-Product-Compatibility/compatibility/" target="_blank">↗ PAC Tool</a><a href="https://docs.bmc.com/xwiki/bin/view/Control-M-Orchestration/Control-M/ctm9022/Patches/" target="_blank">↗ All 9.0.22 Patches</a><a href="https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Java_Installation.htm" target="_blank">↗ Java Installation 🔒</a></div><p style="margin-top:10px;color:#2563eb">Click any checkbox to cycle: ⬜ To Do → ✅ Done → ➖ N/A</p></div>`;
+h+=`<div class="footer">Generated by AMIGO Concierge Upgrade Advisor · BMC Control-M · Customer: AZAMA79</div>`;
+document.getElementById('app').innerHTML=h}
+render();
+</script>
+</body>
+</html>

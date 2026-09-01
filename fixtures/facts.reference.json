@@ -1,0 +1,461 @@
+{
+  "meta": {
+    "parser_version": "0.1.0",
+    "generated_at": "2026-08-20T02:31:20+00:00",
+    "archives": [
+      {
+        "file": "hcu_SBCMEM31W.zip",
+        "product": "EM",
+        "host": "SBCMEM31W",
+        "collector_log_ok": true
+      },
+      {
+        "file": "hcu_SBCMSR01W.zip",
+        "product": "Server",
+        "host": "SBCMSR01W",
+        "collector_log_ok": true
+      }
+    ]
+  },
+  "facts": {
+    "em.version": {
+      "value": "9.0.21.300",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMEM31W.zip:EM/check_config_results/check_config_report_20260815021500.json",
+      "extractor": "X02"
+    },
+    "em.home": {
+      "value": "D:\\BMC\\ControlM_EM",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMEM31W.zip:EM/check_config_results/check_config_report_20260815021500.json",
+      "extractor": "X02"
+    },
+    "em.daily_jobs": {
+      "value": 412000,
+      "confidence": "EXACT",
+      "source": "hcu_SBCMEM31W.zip:EM/check_config_results/check_config_report_20260815021500.json",
+      "extractor": "X10"
+    },
+    "em.size_class": {
+      "value": "Medium",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMEM31W.zip:EM/check_config_results/check_config_report_20260815021500.json",
+      "extractor": "X10"
+    },
+    "em.users": {
+      "value": 140,
+      "confidence": "EXACT",
+      "source": "hcu_SBCMEM31W.zip:EM/check_config_results/check_config_report_20260815021500.json",
+      "extractor": "X10"
+    },
+    "em.host": {
+      "value": "SBCMEM31W",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMEM31W.zip:OS/Network/Hostname.txt",
+      "extractor": "X03"
+    },
+    "em.os_name": {
+      "value": "Microsoft Windows Server 2022 Standard",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMEM31W.zip:OS/Hardware/HardwareConfig.txt",
+      "extractor": "X04"
+    },
+    "em.os_version": {
+      "value": "10.0.20348 N/A Build 20348",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMEM31W.zip:OS/Hardware/HardwareConfig.txt",
+      "extractor": "X04"
+    },
+    "em.ha_or_distributed": {
+      "value": "No (standalone \u2014 no CONFIG_HA.INI)",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMEM31W.zip:<absence of CONFIG_HA.INI>",
+      "extractor": "X07"
+    },
+    "em.disk_free": {
+      "value": [
+        {
+          "drive": "C:",
+          "free_gb": 110.0
+        },
+        {
+          "drive": "D:",
+          "free_gb": 54.0
+        }
+      ],
+      "confidence": "EXACT",
+      "source": "hcu_SBCMEM31W.zip:OS/Disk/partitions.txt",
+      "extractor": "X12"
+    },
+    "em.java_home": {
+      "value": "D:\\Apps\\Control-M JDK\\jdk-21.0.7+6",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMEM31W.zip:OS/Java/check_java_versions.txt",
+      "extractor": "X13"
+    },
+    "em.java_home_version": {
+      "value": "21.0.7",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMEM31W.zip:OS/Java/check_java_versions.txt",
+      "extractor": "X13"
+    },
+    "em.java_system_version": {
+      "value": "1.8.0_371",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMEM31W.zip:OS/Java/check_java_versions.txt",
+      "extractor": "X13"
+    },
+    "em.ldap": {
+      "value": "Configured (Microsoft Active Directory)",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMEM31W.zip:EM/LDAP/ldap.conf",
+      "extractor": "X17"
+    },
+    "em.ai_jobtypes": {
+      "value": {
+        "ABA001": [
+          "v0"
+        ],
+        "ABA002": [
+          "v1"
+        ]
+      },
+      "confidence": "EXACT",
+      "source": "hcu_SBCMEM31W.zip:EM/AAPI/",
+      "extractor": "X20"
+    },
+    "em.av_monitoring": {
+      "value": [
+        "CrowdStrike Falcon (EDR)"
+      ],
+      "confidence": "INFERRED",
+      "source": "hcu_SBCMEM31W.zip:OS/Processes/Processes.txt",
+      "extractor": "X27"
+    },
+    "server.patch_history": {
+      "value": [
+        {
+          "package": "DROST.9.0.21.000_windows",
+          "platform": "windows",
+          "package_date": "2023-03-15",
+          "install_date": "2023-07-22",
+          "version": "9.0.21.000",
+          "type": "Full"
+        },
+        {
+          "package": "PACTV.9.0.21.300",
+          "platform": "windows",
+          "package_date": "2024-11-02",
+          "install_date": "2025-01-18",
+          "version": "9.0.21.300",
+          "type": "Fixpack"
+        },
+        {
+          "package": "PACTV.9.0.21.302",
+          "platform": "windows",
+          "package_date": "2025-06-10",
+          "install_date": "2025-08-03",
+          "version": "9.0.21.302",
+          "type": "Patch"
+        }
+      ],
+      "confidence": "EXACT",
+      "source": "hcu_SBCMSR01W.zip:CNF_INFO/versions/installed-versions.txt",
+      "extractor": "X01"
+    },
+    "server.version": {
+      "value": "9.0.21.302",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMSR01W.zip:CNF_INFO/versions/installed-versions.txt",
+      "extractor": "X01",
+      "raw": "{'package': 'PACTV.9.0.21.302', 'platform': 'windows', 'package_date': '2025-06-10', 'install_date': '2025-08-03', 'version': '9.0.21.302', 'type': 'Patch'}"
+    },
+    "server.fixpack": {
+      "value": "PACTV.9.0.21.302",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMSR01W.zip:CNF_INFO/versions/installed-versions.txt",
+      "extractor": "X01"
+    },
+    "server.host": {
+      "value": "SBCMSR01W",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMSR01W.zip:OS/Network/Hostname.txt",
+      "extractor": "X03"
+    },
+    "server.os_name": {
+      "value": "Microsoft Windows Server 2022 Standard",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMSR01W.zip:OS/Hardware/HardwareConfig.txt",
+      "extractor": "X04"
+    },
+    "server.os_version": {
+      "value": "10.0.20348 N/A Build 20348",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMSR01W.zip:OS/Hardware/HardwareConfig.txt",
+      "extractor": "X04"
+    },
+    "db.type": {
+      "value": "MS SQL (by elimination \u2014 no PostgreSQL/Oracle sections in archive)",
+      "confidence": "INFERRED",
+      "source": "hcu_SBCMSR01W.zip:<absence of db/postgresql & db/oracle>",
+      "extractor": "X05"
+    },
+    "server.ha": {
+      "value": "No (standalone)",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMSR01W.zip:report/SYSPRM.csv",
+      "extractor": "X06",
+      "raw": "{'DAYTIME': '0700', 'MIRRORDB': 'N', 'PRIMARY_MIRROR': 'PRIMARY', 'SSL_ENBL': 'Y', 'MAXJOBLOG': '10', 'CURRENT_STATE': 'UP', 'DESIRED_STATE': 'UP', 'CTM_VERSION': '9.0.21.302'}"
+    },
+    "server.ssl_enabled": {
+      "value": "Y",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMSR01W.zip:report/SYSPRM.csv",
+      "extractor": "X06"
+    },
+    "server.newday_time": {
+      "value": "0700",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMSR01W.zip:report/SYSPRM.csv",
+      "extractor": "X06"
+    },
+    "server.running_version": {
+      "value": "9.0.21.302",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMSR01W.zip:report/SYSPRM.csv",
+      "extractor": "X06"
+    },
+    "server.ajf_peak": {
+      "value": 101744,
+      "confidence": "DERIVED",
+      "source": "hcu_SBCMSR01W.zip:report/jobs_count.csv",
+      "extractor": "X11"
+    },
+    "server.disk_free": {
+      "value": [
+        {
+          "drive": "C:",
+          "free_gb": 92.0
+        },
+        {
+          "drive": "D:",
+          "free_gb": 85.0
+        }
+      ],
+      "confidence": "EXACT",
+      "source": "hcu_SBCMSR01W.zip:OS/Disk/partitions.txt",
+      "extractor": "X12"
+    },
+    "server.apigtw_port": {
+      "value": "8393",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMSR01W.zip:CNF_INFO/data/api_gateway_url.dat",
+      "extractor": "X14",
+      "raw": "https://SBCMSR01W:8393/automation-api"
+    },
+    "server.gd_forward": {
+      "value": "not set (default \u2014 forward ordering active per 9.0.21+ behavior)",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMSR01W.zip:CNF_INFO/data/config.dat",
+      "extractor": "X15"
+    },
+    "server.ctmldnrs_in_use": {
+      "value": "No (file not present in data/)",
+      "confidence": "EXACT",
+      "source": "hcu_SBCMSR01W.zip:<absence>",
+      "extractor": "X16"
+    },
+    "server.ssl_policies": {
+      "value": [
+        "site.plc",
+        "ac.plc"
+      ],
+      "confidence": "EXACT",
+      "source": "hcu_SBCMSR01W.zip:CNF_INFO/cert/*.plc",
+      "extractor": "X18"
+    },
+    "agents": {
+      "value": [
+        {
+          "NODEID": "appsrv01",
+          "VERSION": "9.0.21.300",
+          "OS": "Microsoft Windows Server 2019",
+          "STATE": "AVAILABLE",
+          "SSL": "N"
+        },
+        {
+          "NODEID": "appsrv02",
+          "VERSION": "9.0.21.200",
+          "OS": "Red Hat Enterprise Linux 8.6",
+          "STATE": "AVAILABLE",
+          "SSL": "Y"
+        },
+        {
+          "NODEID": "dbsrv01",
+          "VERSION": "9.0.20.200",
+          "OS": "Red Hat Enterprise Linux 7.9",
+          "STATE": "UNAVAILABLE",
+          "SSL": "N"
+        }
+      ],
+      "confidence": "EXACT",
+      "source": "hcu_SBCMSR01W.zip:AG_TBL_CTM/AGENT_DISCOVERY.csv",
+      "extractor": "X22"
+    },
+    "agents_unavailable": {
+      "value": [
+        "dbsrv01"
+      ],
+      "confidence": "EXACT",
+      "source": "hcu_SBCMSR01W.zip:FNC_INFO/ctm_agstat.txt",
+      "extractor": "X23"
+    },
+    "server.av_monitoring": {
+      "value": [
+        "Microsoft Defender (antivirus)",
+        "WhatsUp Gold (monitoring)"
+      ],
+      "confidence": "INFERRED",
+      "source": "hcu_SBCMSR01W.zip:OS/Processes/Processes.txt",
+      "extractor": "X27"
+    },
+    "topology.em_server_same_host": {
+      "value": "No \u2014 EM on SBCMEM31W, Server on SBCMSR01W",
+      "confidence": "DERIVED",
+      "source": "join(em.host, server.host)",
+      "extractor": "X08"
+    },
+    "flags.ka_000419757": {
+      "value": {
+        "triggered": true,
+        "agents": [
+          "appsrv02"
+        ]
+      },
+      "confidence": "DERIVED",
+      "source": "join(agents.OS, agents.SSL)",
+      "extractor": "X25"
+    }
+  },
+  "gaps": [
+    {
+      "id": "ctmsetown",
+      "question": "Run ctmsetown -action list on EM and Server \u2014 any NOTIMPL entries?",
+      "why": "NOTIMPL entries block the upgrade and must be resolved first.",
+      "state": "run-command",
+      "command": "ctmsetown -action list\nREM Run once as EM admin, once as Server admin.\nREM Paste FULL output. Zero NOTIMPL lines required.",
+      "refs": [
+        {
+          "label": "KA 000354649 \u2014 NOTIMPL resolution \ud83d\udd12",
+          "url": "https://selfservice.bmc.com/casemgmt/sc_KnowledgeArticle?sfdcid=kA114000000pA8DCAU"
+        }
+      ]
+    },
+    {
+      "id": "compat_mode",
+      "question": "Compatibility Mode status and version",
+      "why": "Hard gate: cannot upgrade to 9.0.22 if compatibility version is 9.0.19 or lower. Irreversible once off. (Not yet captured by the collector \u2014 spec X19.)",
+      "state": "console",
+      "console": "CCM \u2192 Manage \u2192 Compatibility Mode \u2014 record On/Off and the compatibility version shown.",
+      "refs": [
+        {
+          "label": "KA 000401828 \u2014 Compatibility Mode FAQ \ud83d\udd12",
+          "url": "https://selfservice.bmc.com/casemgmt/sc_KnowledgeArticle?sfdcid=kA114000000pDZpCAM"
+        }
+      ]
+    },
+    {
+      "id": "is_upgrade_ready",
+      "question": "Run is_upgrade_ready near the upgrade window",
+      "why": "Point-in-time readiness validation from the target install media.",
+      "state": "run-command",
+      "command": "cd <install_media>\\UpgradeReady\\upgrade_ready\nis_upgrade_ready.bat -p em\nis_upgrade_ready.bat -p ctm",
+      "refs": [
+        {
+          "label": "Verifying Upgrade Readiness \ud83d\udd12",
+          "url": "https://documents.bmc.com/supportu/9.0.22/en-US/Documentation/Control-M_upgrade.htm"
+        }
+      ]
+    },
+    {
+      "id": "cm_inventory",
+      "question": "Control Modules installed on the Server's local agent",
+      "why": "CMs are NOT upgraded in-place \u2014 each needs a separate migration case.",
+      "state": "console",
+      "console": "CCM \u2192 Agents \u2192 <local agent> \u2192 installed plug-ins; or list <agent_home>\\cm\\ on disk."
+    },
+    {
+      "id": "em_clients",
+      "question": "How many EM clients exist, and where?",
+      "why": "Determines Compatibility Mode duration \u2014 EM stays in compat mode until ALL clients are upgraded.",
+      "state": "interview"
+    },
+    {
+      "id": "target_version",
+      "question": "Target version and fix pack (9.0.22 recommended)",
+      "why": "Defines the upgrade path and applicable rules.",
+      "state": "interview"
+    },
+    {
+      "id": "upgrade_date",
+      "question": "Planned upgrade date (DD/MMM/YYYY)",
+      "why": "AMIGO Review requires 2 weeks lead time.",
+      "state": "interview"
+    },
+    {
+      "id": "downtime_window",
+      "question": "Downtime window (start, duration)",
+      "why": "Both components share the outage if co-hosted; runbook timers are built from this.",
+      "state": "interview"
+    },
+    {
+      "id": "fallback_plan",
+      "question": "Documented and tested fallback plan?",
+      "why": "Required before cutover \u2014 includes DB restore procedure.",
+      "state": "interview"
+    },
+    {
+      "id": "change_freeze",
+      "question": "Change cutoff for job definitions/calendars/services",
+      "why": "Prevents drift between EM and Server during upgrade.",
+      "state": "interview"
+    },
+    {
+      "id": "test_plan",
+      "question": "Post-upgrade functional test plan",
+      "why": "Verification phase of the runbook is built from this.",
+      "state": "interview"
+    },
+    {
+      "id": "same_machine",
+      "question": "In-place on the same machine (not a migration)?",
+      "why": "Migration to a new machine is not covered under AMIGO.",
+      "state": "interview"
+    },
+    {
+      "id": "cloud",
+      "question": "Is the environment cloud-hosted?",
+      "why": "KA 000223209 applies if yes.",
+      "state": "interview"
+    },
+    {
+      "id": "av_exclusions",
+      "question": "Confirm Control-M exclusions are configured in the detected AV/monitoring tools",
+      "why": "Scanning interference can corrupt the upgrade.",
+      "state": "interview"
+    },
+    {
+      "id": "firewall",
+      "question": "Confirm firewall rules verified for the new version",
+      "why": "EM\u2194Server and Server\u2194Agent ports.",
+      "state": "interview"
+    }
+  ],
+  "summary": {
+    "facts_total": 38,
+    "exact": 32,
+    "derived": 3,
+    "inferred_confirm": 3,
+    "gaps_total": 15
+  }
+}
