@@ -18,6 +18,7 @@ export function ExportMenu({ primary }: { primary: 'plan' | 'runbook' }) {
   const saveCaseToFile = useCaseStore((s) => s.saveCaseToFile);
 
   const [open, setOpen] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const root = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,6 +36,12 @@ export function ExportMenu({ primary }: { primary: 'plan' | 'runbook' }) {
       document.removeEventListener('keydown', onKey);
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!notice) return;
+    const t = setTimeout(() => setNotice(null), 5000);
+    return () => clearTimeout(t);
+  }, [notice]);
 
   if (!doc) return null;
 
@@ -89,6 +96,17 @@ export function ExportMenu({ primary }: { primary: 'plan' | 'runbook' }) {
       >
         <Download size={13} /> Export <ChevronDown size={12} className="text-gray-400" />
       </button>
+      <p
+        role="status"
+        aria-live="polite"
+        className={
+          notice
+            ? 'fixed bottom-16 left-5 z-40 max-w-xs rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12px] text-emerald-800 shadow-lg'
+            : 'sr-only'
+        }
+      >
+        {notice ?? ''}
+      </p>
       {open && (
         <div
           role="menu"
@@ -104,6 +122,7 @@ export function ExportMenu({ primary }: { primary: 'plan' | 'runbook' }) {
               onClick={() => {
                 e.run();
                 setOpen(false);
+                setNotice(`Download started: ${e.label}. Check the browser downloads.`);
               }}
               className="flex w-full items-start gap-2.5 px-3 py-2 text-left hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white"
             >

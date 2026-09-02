@@ -1,22 +1,29 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { FolderOpen, Save, ServerCog, X } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { AlertTriangle, FolderOpen, Save, ServerCog, X } from 'lucide-react';
 import { useCaseStore } from '@/lib/store/caseStore';
 import { CaseFileError } from '@/lib/case/serialize';
 
 export function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const doc = useCaseStore((s) => s.doc);
   const lastSavedAt = useCaseStore((s) => s.lastSavedAt);
+  const autosaveOk = useCaseStore((s) => s.autosaveOk);
   const openCaseFromText = useCaseStore((s) => s.openCaseFromText);
   const saveCaseToFile = useCaseStore((s) => s.saveCaseToFile);
   const closeCase = useCaseStore((s) => s.closeCase);
 
   const fileInput = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // A stale file error must not follow the TSA to the next screen.
+  useEffect(() => {
+    setError(null);
+  }, [pathname]);
 
   async function handleFile(file: File) {
     setError(null);
@@ -94,10 +101,12 @@ export function Header() {
               <button
                 type="button"
                 onClick={() => {
+                  if (!window.confirm('Close this case? The browser autosave slot is cleared — save the case file first if you have not.')) return;
                   closeCase();
                   router.push('/');
                 }}
                 title="Close case (clears the autosave slot — save the file first)"
+                aria-label="Close case"
                 className="rounded-lg border border-gray-300 p-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
               >
                 <X size={14} />
@@ -108,8 +117,17 @@ export function Header() {
       </div>
 
       {error && (
-        <div className="border-t border-red-200 bg-red-50 px-4 py-2 text-center text-[12px] text-red-700">
-          {error}
+        <div role="alert" className="flex items-center justify-center gap-3 border-t border-red-200 bg-red-50 px-4 py-2 text-[12px] text-red-700">
+          <span>{error}</span>
+          <button type="button" onClick={() => setError(null)} aria-label="Dismiss" className="rounded p-0.5 hover:bg-red-100">
+            <X size={13} />
+          </button>
+        </div>
+      )}
+      {doc && !autosaveOk && (
+        <div role="alert" className="flex items-center justify-center gap-2 border-t border-amber-200 bg-amber-50 px-4 py-2 text-[12px] text-amber-800">
+          <AlertTriangle size={13} className="shrink-0" />
+          Autosave is unavailable in this browser (storage full or blocked) — use Save case file to keep your work.
         </div>
       )}
     </header>

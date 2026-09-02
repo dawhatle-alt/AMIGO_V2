@@ -171,7 +171,7 @@ export function HomeScreen() {
                 {r.case_number && (
                   <span className="font-mono text-[11px] text-gray-500">#{r.case_number}</span>
                 )}
-                <span className="ml-auto font-mono text-[11px] text-gray-400">{r.updated_at}</span>
+                <span className="ml-auto font-mono text-[11px] text-gray-500">{r.updated_at}</span>
               </li>
             ))}
           </ul>

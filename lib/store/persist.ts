@@ -33,14 +33,17 @@ export function caseId(doc: CaseDocument): string {
   return doc.case.created_at;
 }
 
-export function saveActiveCase(doc: CaseDocument): void {
+/** Returns false when the browser refused the write (quota, private mode, disabled storage). */
+export function saveActiveCase(doc: CaseDocument): boolean {
   const s = storage();
-  if (!s) return;
+  if (!s) return false;
   try {
     s.setItem(ACTIVE_KEY, serializeCaseFile(doc));
     touchRecent(doc);
+    return true;
   } catch {
     /* quota or private mode — autosave is best-effort, the file round-trip is authoritative */
+    return false;
   }
 }
 

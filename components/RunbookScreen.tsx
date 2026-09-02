@@ -129,6 +129,7 @@ export function RunbookScreen() {
           <button
             type="button"
             onClick={() => setRollbackOpen((v) => !v)}
+            aria-expanded={rollbackOpen}
             className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-[12px] font-semibold text-red-700 hover:bg-red-100"
           >
             <RotateCcw size={14} /> {rollbackOpen ? 'Hide rollback' : 'Rollback'}
@@ -203,9 +204,9 @@ export function RunbookScreen() {
         return (
           <section key={phase.id}>
             <div className="mb-2 flex items-center gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-wide text-gray-400">Phase {phase.id}</span>
+              <span className="text-[11px] font-bold uppercase tracking-wide text-gray-500">Phase {phase.id}</span>
               <span className="text-[13px] font-semibold text-gray-800">{phase.name}</span>
-              <span className="ml-auto font-mono text-[11px] text-gray-400">~{phaseEstimate(doc.runbook, phase.id)} min</span>
+              <span className="ml-auto font-mono text-[11px] text-gray-500">~{phaseEstimate(doc.runbook, phase.id)} min</span>
             </div>
             <div className="space-y-2">
               {steps.map((step) => {
@@ -412,14 +413,14 @@ function StepCard({
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-[11px] font-bold text-gray-400">{String(number).padStart(2, '0')}</span>
+            <span className="font-mono text-[11px] font-bold text-gray-500">{String(number).padStart(2, '0')}</span>
             <span className={`text-[13px] font-medium ${done ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{step.title}</span>
             {content.risk !== 'clear' && !done && !na && (
               <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${RISK_BADGE[content.risk]}`}>
                 {content.risk === 'blocker' ? 'Critical' : 'Caution'}
               </span>
             )}
-            <span className="ml-auto flex items-center gap-1 text-[11px] text-gray-400">
+            <span className="ml-auto flex items-center gap-1 text-[11px] text-gray-500">
               <Clock size={11} /> {step.est_min}m
             </span>
           </div>
@@ -434,7 +435,7 @@ function StepCard({
               )}
             </p>
           )}
-          <button type="button" onClick={onToggle} className="mt-1 flex items-center gap-1 text-[12px] font-medium text-primary hover:text-primary-dark">
+          <button type="button" onClick={onToggle} aria-expanded={expanded} className="mt-1 flex items-center gap-1 text-[12px] font-medium text-primary hover:text-primary-dark">
             {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
             {expanded ? 'Hide' : 'Show'} details
           </button>

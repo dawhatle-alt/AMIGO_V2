@@ -8,11 +8,13 @@ import {
   ChevronDown,
   FileArchive,
   Loader2,
+  SearchX,
   Trash2,
   UploadCloud,
 } from 'lucide-react';
 import { parseArchives, type ParseResult } from '@/lib/parser';
 import { useCaseStore } from '@/lib/store/caseStore';
+import { reparseImpact } from '@/lib/case/reparse';
 
 /**
  * S2 Intake (PRD §6, FR-4..FR-8).
@@ -81,7 +83,10 @@ export function IntakeScreen() {
   );
 
   function runParse() {
-    if (staged.length === 0) return;
+    if (!doc || staged.length === 0) return;
+    // FR-1/FR-2: a second parse resets confirmations, answers, plan and runbook.
+    const impact = reparseImpact(doc);
+    if (impact.message && !window.confirm(impact.message)) return;
     setBusy(true);
     setError(null);
     // Yield a frame so the spinner paints before the synchronous unzip+parse.
@@ -112,8 +117,38 @@ export function IntakeScreen() {
     );
   }
 
+  const impact = reparseImpact(doc);
+
   return (
     <div className="space-y-4">
+      {doc.archives.length > 0 && !result && (
+        <section className="card border-primary-border bg-primary-soft p-5" aria-label="Archives already parsed">
+          <p className="text-[13px] font-semibold text-primary-dark">This case already has parsed archives</p>
+          <ul className="mt-2 space-y-1">
+            {doc.archives.map((a) => (
+              <li key={a.file} className="flex flex-wrap items-center gap-2 text-[12px]">
+                <span className="font-mono text-gray-800">{a.file}</span>
+                <span className="rounded bg-white px-1.5 py-0.5 font-medium text-primary-dark">{a.product}</span>
+                {a.host && <span className="font-mono text-gray-600">{a.host}</span>}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-[12px] text-gray-700">
+            {Object.keys(doc.facts).length} facts · {doc.gaps.length} gaps
+            {impact.items.length > 0 ? ` · ${impact.items.join(', ')}` : ''}. Parsing again replaces the
+            facts and gaps{impact.items.length > 0 ? ' and resets the items listed' : ''}; you will be asked
+            to confirm.
+          </p>
+          <button
+            type="button"
+            onClick={() => router.push('/facts')}
+            className="mt-3 rounded-lg bg-primary px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-primary-hover"
+          >
+            Continue to Facts Review
+          </button>
+        </section>
+      )}
+
       <section className="card p-6">
         <div className="flex items-center gap-2">
           <FileArchive size={16} className="text-primary" />
@@ -176,7 +211,7 @@ export function IntakeScreen() {
                 <span className="min-w-0 flex-1 truncate font-mono text-[12px] text-gray-800">
                   {s.file.name}
                 </span>
-                <span className="shrink-0 font-mono text-[11px] text-gray-400">
+                <span className="shrink-0 font-mono text-[11px] text-gray-500">
                   {formatBytes(s.file.size)}
                 </span>
                 <button
@@ -202,6 +237,7 @@ export function IntakeScreen() {
         <button
           type="button"
           onClick={runParse}
+          aria-busy={busy}
           disabled={staged.length === 0 || busy}
           className={`mt-4 flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-semibold ${
             staged.length === 0 || busy
@@ -210,7 +246,7 @@ export function IntakeScreen() {
           }`}
         >
           {busy && <Loader2 size={14} className="animate-spin" />}
-          {busy ? 'Parsing…' : `Parse ${staged.length || ''} archive${staged.length === 1 ? '' : 's'}`}
+          {busy ? 'Parsing…' : staged.length === 0 ? 'Parse archives' : `Parse ${staged.length} archive${staged.length === 1 ? '' : 's'}`}
         </button>
       </section>
 
@@ -229,12 +265,21 @@ export function IntakeScreen() {
 
 function ParseSummary({ result, onContinue }: { result: ParseResult; onContinue: () => void }) {
   const s = result.summary;
+  const empty = s.facts_total === 0;
   return (
-    <section className="card p-6">
+    <section className="card p-6" role="status" aria-live="polite">
       <div className="flex items-center gap-2">
-        <CheckCircle2 size={16} className="text-risk-clear" />
-        <h2 className="text-[15px] font-bold text-gray-900">Parsed</h2>
+        {empty ? <SearchX size={16} className="text-risk-warning" /> : <CheckCircle2 size={16} className="text-risk-clear" />}
+        <h2 className="text-[15px] font-bold text-gray-900">{empty ? 'Nothing recognised' : 'Parsed'}</h2>
       </div>
+      {empty && (
+        <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-800">
+          No Control-M facts were found in {result.meta.archives.length === 1 ? 'this archive' : 'these archives'}.
+          It is probably not a <code className="font-mono">ctm_data_collector</code> collection, or the product
+          directory signature (EM / Server) was not detected. Open Diagnostics below for the reason, and ask the
+          customer for the archive the collector produced.
+        </p>
+      )}
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="Facts" value={s.facts_total} />
@@ -262,13 +307,15 @@ function ParseSummary({ result, onContinue }: { result: ParseResult; onContinue:
         ))}
       </ul>
 
-      <button
-        type="button"
-        onClick={onContinue}
-        className="mt-4 rounded-lg bg-primary px-4 py-2 text-[13px] font-semibold text-white hover:bg-primary-hover"
-      >
-        Continue to Facts Review
-      </button>
+      {!empty && (
+        <button
+          type="button"
+          onClick={onContinue}
+          className="mt-4 rounded-lg bg-primary px-4 py-2 text-[13px] font-semibold text-white hover:bg-primary-hover"
+        >
+          Continue to Facts Review
+        </button>
+      )}
     </section>
   );
 }
@@ -303,6 +350,7 @@ function Diagnostics({
       <button
         type="button"
         onClick={onToggle}
+        aria-expanded={open}
         className="flex w-full items-center gap-2 px-4 py-3 text-left hover:bg-gray-50"
       >
         {warnings.length > 0 ? (

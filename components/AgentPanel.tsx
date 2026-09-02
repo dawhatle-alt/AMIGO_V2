@@ -185,7 +185,7 @@ export function AgentPanel() {
         ))}
 
         {thinking && (
-          <div className="flex items-center gap-2 text-[12px] text-gray-500">
+          <div role="status" aria-live="polite" className="flex items-center gap-2 text-[12px] text-gray-500">
             <Loader2 size={13} className="animate-spin" /> Thinking…
           </div>
         )}
@@ -270,7 +270,7 @@ export function AgentPanel() {
             <Send size={14} />
           </button>
         </div>
-        <p className="mt-2 text-[10px] leading-snug text-gray-400">
+        <p className="mt-2 text-[10px] leading-snug text-gray-500">
           Production failures go to a NEW Severity 1 case — never raise the AMIGO case severity.
         </p>
       </div>

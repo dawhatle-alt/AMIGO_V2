@@ -205,6 +205,7 @@ export function PlanScreen() {
                   <button
                     type="button"
                     onClick={() => setOpenSections((p) => ({ ...p, [section.id]: !open }))}
+                    aria-expanded={open}
                     className="flex w-full items-center gap-3 p-4 text-left hover:bg-gray-50"
                   >
                     {open ? (
@@ -213,7 +214,7 @@ export function PlanScreen() {
                       <ChevronRight size={16} className="shrink-0 text-gray-400" />
                     )}
                     <span className="flex-1 text-[14px] font-semibold text-gray-900">{section.title}</span>
-                    <span className="font-mono text-[12px] text-gray-400">
+                    <span className="font-mono text-[12px] text-gray-500">
                       {done}/{applicable}
                     </span>
                   </button>
@@ -335,6 +336,7 @@ function PlanRow({
             <button
               type="button"
               onClick={onToggle}
+              aria-expanded={expanded}
               className="mt-1.5 flex items-center gap-1 text-[12px] font-medium text-primary hover:text-primary-dark"
             >
               {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}

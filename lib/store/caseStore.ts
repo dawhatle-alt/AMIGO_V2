@@ -27,6 +27,8 @@ interface CaseState {
   /** True once the localStorage restore attempt has run (avoids SSR flicker). */
   hydrated: boolean;
   lastSavedAt: string | null;
+  /** False when the last autosave was refused (storage full / blocked) — the header warns. */
+  autosaveOk: boolean;
 
   hydrate: () => void;
   newCase: (input: NewCaseInput) => void;
@@ -118,6 +120,7 @@ export const useCaseStore = create<CaseState>((set, get) => ({
   doc: null,
   hydrated: false,
   lastSavedAt: null,
+  autosaveOk: true,
   agentOpen: false,
   agentFocus: null,
 
@@ -138,8 +141,8 @@ export const useCaseStore = create<CaseState>((set, get) => ({
 
   newCase: (input) => {
     const doc = createEmptyCase(input);
-    saveActiveCase(doc);
-    set({ doc, hydrated: true, lastSavedAt: doc.case.updated_at });
+    const ok = saveActiveCase(doc);
+    set({ doc, hydrated: true, lastSavedAt: ok ? doc.case.updated_at : null, autosaveOk: ok });
   },
 
   openCaseFromText: (text, fileName) => {
@@ -154,8 +157,8 @@ export const useCaseStore = create<CaseState>((set, get) => ({
     };
     doc.activity_log = [...doc.activity_log, entry];
     doc.case.updated_at = now;
-    saveActiveCase(doc);
-    set({ doc, hydrated: true, lastSavedAt: now });
+    const ok = saveActiveCase(doc);
+    set({ doc, hydrated: true, lastSavedAt: ok ? now : null, autosaveOk: ok });
   },
 
   saveCaseToFile: () => {
@@ -430,8 +433,8 @@ export const useCaseStore = create<CaseState>((set, get) => ({
     const now = new Date().toISOString();
     draft.case.updated_at = now;
     draft.activity_log = [...draft.activity_log, { ts: now, actor: 'TSA', action, detail }];
-    saveActiveCase(draft);
-    set({ doc: draft, lastSavedAt: now });
+    const ok = saveActiveCase(draft);
+    set({ doc: draft, lastSavedAt: ok ? now : get().lastSavedAt, autosaveOk: ok });
   },
 
   log: (action, detail) => {

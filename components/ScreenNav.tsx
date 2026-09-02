@@ -19,7 +19,7 @@ export function ScreenNav() {
   const hasCase = useCaseStore((s) => s.doc !== null);
 
   return (
-    <nav className="border-b border-gray-200 bg-white">
+    <nav aria-label="Screens" className="border-b border-gray-200 bg-white">
       <div className="mx-auto flex w-full max-w-4xl gap-1 overflow-x-auto px-4">
         {SCREENS.map((s) => {
           const active = pathname === s.href;
@@ -32,6 +32,7 @@ export function ScreenNav() {
               <span
                 key={s.href}
                 title="Create or open a case first"
+                aria-disabled="true"
                 className={`${base} cursor-not-allowed border-transparent text-gray-300`}
               >
                 {s.label}
@@ -43,6 +44,7 @@ export function ScreenNav() {
             <Link
               key={s.href}
               href={s.href}
+              aria-current={active ? 'page' : undefined}
               className={`${base} ${
                 active
                   ? 'border-primary text-primary'

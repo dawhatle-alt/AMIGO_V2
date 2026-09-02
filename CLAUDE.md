@@ -85,8 +85,8 @@ reference/      # (exists) read-only source material
 - [x] M4 AI agent (gate passed 2026-09-01; live-model exchange still awaits a key)
 - [x] M5 Plan generation (gate passed 2026-09-01)
 - [x] M6 Runbook (gate passed 2026-09-01)
-- [x] M7 Export (built 2026-09-01; gate evidence presented, approval pending)
-- [ ] M8 Polish & hardening
+- [x] M7 Export (gate passed 2026-09-02)
+- [x] M8 Polish & hardening (built 2026-09-02; gate evidence presented, approval pending)
 
 Update the checklist above at every gate, and keep a short `DECISIONS.md` log
 (date, decision, why) for anything that deviates from the PRD.

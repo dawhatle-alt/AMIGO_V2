@@ -437,3 +437,48 @@ buttons.
 scripts enabled so the tests exercise the same inline JS a double-click
 runs. The Browser pane renders on-disk files as static snapshots, so the
 real-browser check was done by serving the same bytes over the dev server.
+
+## 2026-09-02 — M8: Polish & hardening
+
+**Re-parse asks first.** `applyParseResult` has always reset confirmations,
+answers, plan and runbook (a re-parse invalidates them). Intake now shows the
+archives already on the case and, when anything would be lost, names it and
+asks before parsing — `reparseImpact()` in `lib/case/reparse.ts`. The audit
+trail still records the reset.
+
+**Autosave failure is visible.** `saveActiveCase` returns whether the browser
+accepted the write; the store keeps `autosaveOk` and the header shows an
+amber "autosave unavailable — save the case file" banner while it is false.
+The case stays in memory and every action is still logged, so nothing is
+lost until the tab closes. Closing a case now asks for confirmation because
+it clears the autosave slot.
+
+**Error boundaries, not blank screens.** `app/error.tsx` keeps header, nav
+and case when a screen throws and offers Save case file / Try again /
+Reload; `app/global-error.tsx` covers the layout itself; `app/not-found.tsx`
+points back to the six screens.
+
+**Wrong-file intake.** A zip that is not an HCU collection (or bytes that are
+not an archive) never crash intake: zero facts, a product-detect / archive
+warning in Diagnostics, and a "Nothing recognised" summary that explains
+what to ask the customer for. Tested with a synthetic zip and PDF bytes.
+
+**Accessibility pass.** Skip link and focusable `<main>`; `nav` labelled with
+`aria-current="page"`; `aria-expanded` on every collapsible toggle;
+`aria-busy` while parsing; `role="status"` live regions for parse results,
+advisor "Thinking…" and export downloads (a toast, since a download gives no
+other feedback); icon-only buttons all have accessible names; a visible
+`:focus-visible` ring; informational 11px text moved from gray-400 to
+gray-500 (≈4.6:1 contrast). Done/N/A strike-through stays muted on purpose.
+Verified from the browser's accessibility tree and at tablet width (PRD §6:
+runbook usable on upgrade night).
+
+**Build beside dev.** `next.config.mjs` honours `NEXT_DIST_DIR` so a
+production build (`.next-build/`, git-ignored) can run while `next dev` owns
+`.next/`. Production build passes.
+
+**Footer carries versions** (app, parser, rules) for support questions.
+`components/ui/MilestoneStub.tsx` (M0 placeholder) removed.
+
+**Not done in Phase 1:** embedded fonts in exports (see M7), an automated
+axe-style audit (manual tree review instead), and a file-based error log.

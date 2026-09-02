@@ -86,11 +86,20 @@ export function FactsScreen() {
           ) : (
             <Lock size={15} className="mt-px shrink-0" />
           )}
-          <p>
+          <p className="flex-1">
             {ready
               ? 'All inferred values resolved and no blockers outstanding — plan generation is unblocked.'
               : 'Plan generation is blocked until every blocker below is resolved.'}
           </p>
+          {ready && (
+            <button
+              type="button"
+              onClick={() => router.push('/gaps')}
+              className="shrink-0 rounded-lg bg-primary px-3 py-1 text-[12px] font-semibold text-white hover:bg-primary-hover"
+            >
+              Continue to Gap Walkthrough
+            </button>
+          )}
         </div>
       </section>
 
@@ -257,6 +266,7 @@ function FactTable({ domain, rows }: { domain: string; rows: FactRow[] }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
         className="flex w-full items-center gap-2 px-4 py-3 text-left hover:bg-gray-50"
       >
         <span className="flex-1 text-[14px] font-bold text-gray-900">
