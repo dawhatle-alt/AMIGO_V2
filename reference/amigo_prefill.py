@@ -146,6 +146,27 @@ def src(ar, member):
 
 
 # ------------------------------------------------------------- extractors ----
+_MONTHS = {"jan": "01", "feb": "02", "mar": "03", "apr": "04", "may": "05", "jun": "06",
+           "jul": "07", "aug": "08", "sep": "09", "oct": "10", "nov": "11", "dec": "12"}
+
+
+def _install_date_key(value):
+    """Comparable YYYYMMDD key for an installed-versions date, or None.
+
+    Windows collections write ISO dates (2023-07-22); Linux ones write
+    Mon-DD-YYYY (Apr-01-2025), which sorts alphabetically by month name and
+    made X01 report the wrong latest version. Mirrored in the TS port
+    (lib/parser/extractors/identity.ts) — keep both in lockstep.
+    """
+    m = re.match(r"^(\d{4})-(\d{2})-(\d{2})$", value)
+    if m:
+        return m.group(1) + m.group(2) + m.group(3)
+    m = re.match(r"^([A-Za-z]{3})-(\d{2})-(\d{4})$", value)
+    if m and m.group(1).lower() in _MONTHS:
+        return m.group(3) + _MONTHS[m.group(1).lower()] + m.group(2)
+    return None
+
+
 def x01_installed_versions(ar, F):
     text, m = ar.read("CNF_INFO/versions/installed-versions.txt")
     if text is None:
@@ -158,7 +179,14 @@ def x01_installed_versions(ar, F):
                 ["package", "platform", "package_date", "install_date", "version", "type"], parts)))
     if not rows:
         return
-    rows.sort(key=lambda r: r["install_date"])
+    # Stable sort by install_date as a real DATE when every row parses; if any
+    # row is unrecognised, fall back to the plain string sort rather than
+    # guessing a partial order (extractors never invent).
+    keys = {id(r): _install_date_key(r["install_date"]) for r in rows}
+    if all(k is not None for k in keys.values()):
+        rows.sort(key=lambda r: keys[id(r)])
+    else:
+        rows.sort(key=lambda r: r["install_date"])
     F.add("server.patch_history", rows, "EXACT", src(ar, m), "X01")
     F.add("server.version", rows[-1]["version"], "EXACT", src(ar, m), "X01", raw=str(rows[-1]))
     fps = [r for r in rows if r["type"].lower() in ("fixpack", "patch")]

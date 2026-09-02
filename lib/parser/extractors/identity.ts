@@ -22,6 +22,32 @@ const VERSION_COLUMNS = [
   'type',
 ] as const;
 
+const MONTHS: Record<string, string> = {
+  jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+  jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12',
+};
+
+/**
+ * Comparable YYYYMMDD key for an installed-versions date, or null when the
+ * format is unrecognised.
+ *
+ * Windows collections write ISO dates (2023-07-22), where string order equals
+ * date order — but Linux collections write Mon-DD-YYYY (Apr-01-2025), which
+ * sorts alphabetically by month name. X01 picks `server.version` from the LAST
+ * row after sorting, so on a real Linux archive the plain string sort reported
+ * a 9.0.21.302 environment as 9.0.20.200. Mirrored in reference/amigo_prefill.py.
+ */
+export function installDateKey(value: string): string | null {
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (iso) return `${iso[1]}${iso[2]}${iso[3]}`;
+  const mon = /^([A-Za-z]{3})-(\d{2})-(\d{4})$/.exec(value);
+  if (mon?.[1] && mon[2] && mon[3]) {
+    const month = MONTHS[mon[1].toLowerCase()];
+    if (month) return `${mon[3]}${month}${mon[2]}`;
+  }
+  return null;
+}
+
 /** X01 — installed-versions table → server version, fix pack, patch history. */
 export function x01InstalledVersions(ar: Archive, F: FactSet): void {
   const hit = ar.read('CNF_INFO/versions/installed-versions.txt');
@@ -40,8 +66,13 @@ export function x01InstalledVersions(ar: Archive, F: FactSet): void {
   }
   if (rows.length === 0) return;
 
-  // Stable sort by install_date, as the reference does.
-  rows.sort((a, b) => (a.install_date < b.install_date ? -1 : a.install_date > b.install_date ? 1 : 0));
+  // Stable sort by install_date as a real DATE when every row's date parses;
+  // if any row is unrecognised, fall back to the plain string sort rather than
+  // guessing a partial order (extractors never invent).
+  const keys = new Map(rows.map((r) => [r, installDateKey(r.install_date)] as const));
+  const allParsed = [...keys.values()].every((k) => k !== null);
+  const sortKey = (r: VersionRow): string => (allParsed ? (keys.get(r) as string) : r.install_date);
+  rows.sort((a, b) => (sortKey(a) < sortKey(b) ? -1 : sortKey(a) > sortKey(b) ? 1 : 0));
   const s = ar.src(hit.member);
   const latest = rows[rows.length - 1] as VersionRow;
 

@@ -28,6 +28,14 @@ interface CaseState {
   /** Replace facts/gaps/archives with a fresh parse result (M1 intake). */
   applyParseResult: (result: ParseResult) => void;
 
+  /** Accept an INFERRED fact as extracted (FR-10). */
+  confirmFact: (key: string) => void;
+  /** Override an INFERRED fact; both values stay in the audit trail (FR-10). */
+  correctFact: (key: string, correctedValue: string) => void;
+  /** Undo a confirmation so the value returns to the queue. */
+  clearConfirmation: (key: string) => void;
+
+
   /** Apply a change and record it in the audit trail. */
   mutate: (action: string, detail: string, fn: (draft: CaseDocument) => void) => void;
   log: (action: string, detail: string) => void;
@@ -35,6 +43,12 @@ interface CaseState {
 
 function clone(doc: CaseDocument): CaseDocument {
   return JSON.parse(JSON.stringify(doc)) as CaseDocument;
+}
+
+/** Compact rendering of a fact value for the audit trail. */
+function describe(value: unknown): string {
+  if (typeof value === 'string') return value;
+  return JSON.stringify(value) ?? String(value);
 }
 
 export const useCaseStore = create<CaseState>((set, get) => ({
@@ -109,6 +123,48 @@ export const useCaseStore = create<CaseState>((set, get) => ({
         draft.runbook = { steps: [], outage_started_at: null, window_minutes: null };
       },
     );
+  },
+
+  confirmFact: (key) => {
+    const fact = get().doc?.facts[key];
+    if (!fact) return;
+    get().mutate(
+      'fact.confirmed',
+      `${key} = ${describe(fact.value)} (confidence ${fact.confidence}, source ${fact.source})`,
+      (draft) => {
+        draft.confirmations[key] = {
+          status: 'confirmed',
+          corrected_value: null,
+          ts: new Date().toISOString(),
+        };
+      },
+    );
+  },
+
+  correctFact: (key, correctedValue) => {
+    const fact = get().doc?.facts[key];
+    if (!fact) return;
+    // FR-10: the extracted value is never overwritten - `facts` keeps what the
+    // archive said, `confirmations` records what the TSA says it actually is,
+    // and the log line carries both.
+    get().mutate(
+      'fact.corrected',
+      `${key}: extracted ${describe(fact.value)} -> corrected to ${describe(correctedValue)}`,
+      (draft) => {
+        draft.confirmations[key] = {
+          status: 'corrected',
+          corrected_value: correctedValue,
+          ts: new Date().toISOString(),
+        };
+      },
+    );
+  },
+
+  clearConfirmation: (key) => {
+    if (!get().doc?.confirmations[key]) return;
+    get().mutate('fact.confirmation_cleared', key, (draft) => {
+      delete draft.confirmations[key];
+    });
   },
 
   mutate: (action, detail, fn) => {
