@@ -60,8 +60,13 @@ export async function POST(req: Request): Promise<Response> {
     );
   }
   const model = process.env.ANTHROPIC_MODEL?.trim() || DEFAULT_MODEL;
+  // Identity-linked keys must name the workspace the request acts in.
+  const workspaceId = process.env.ANTHROPIC_WORKSPACE_ID?.trim();
 
-  const client = new Anthropic({ apiKey });
+  const client = new Anthropic({
+    apiKey,
+    ...(workspaceId ? { defaultHeaders: { 'anthropic-workspace-id': workspaceId } } : {}),
+  });
   try {
     const response = await client.messages.create({
       model,
@@ -93,17 +98,32 @@ export async function POST(req: Request): Promise<Response> {
       return fail(429, 'The advisor is rate-limited right now — try again in a moment.', true);
     }
     if (error instanceof Anthropic.BadRequestError) {
-      return fail(400, `The advisor rejected the request: ${error.message}`, false);
+      const message = apiMessage(error);
+      if (/workspace/i.test(message)) {
+        return fail(
+          503,
+          'Advisor not configured — this API key is identity-linked, so ANTHROPIC_WORKSPACE_ID must be set in .env.local (the workspace the key belongs to).',
+          false,
+        );
+      }
+      return fail(400, `The advisor rejected the request: ${message}`, false);
     }
     if (error instanceof Anthropic.APIConnectionError) {
       return fail(503, 'Could not reach the advisor service — check the network and retry.', true);
     }
     if (error instanceof Anthropic.APIError) {
       const status = typeof error.status === 'number' ? error.status : 502;
-      return fail(status >= 500 ? 502 : status, `Advisor service error (${status}): ${error.message}`, status >= 500);
+      return fail(status >= 500 ? 502 : status, `Advisor service error (${status}): ${apiMessage(error)}`, status >= 500);
     }
     return fail(500, 'Unexpected advisor error — retry.', true);
   }
+}
+
+/** The API's own message when the SDK wrapped a JSON error body, else the SDK message. */
+function apiMessage(error: { error?: unknown; message: string }): string {
+  const body = error.error as { error?: { message?: unknown } } | undefined;
+  const inner = body?.error?.message;
+  return typeof inner === 'string' && inner.trim() !== '' ? inner : error.message;
 }
 
 function validate(body: unknown): ChatRequest | { error: string } {

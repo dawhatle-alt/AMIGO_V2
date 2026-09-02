@@ -141,7 +141,9 @@ test/           Vitest suites
 - **Runbook shows "—" for window left** — answer the downtime window gap with a
   recognisable duration or clock range.
 - **Advisor says it is not configured** — add `ANTHROPIC_API_KEY` to
-  `.env.local` and restart `npm run dev`.
+  `.env.local` and restart `npm run dev`. If it says the key is
+  identity-linked, also set `ANTHROPIC_WORKSPACE_ID` to the workspace the key
+  belongs to (shown in the Anthropic Console).
 - **A screen shows "This screen hit an error"** — the case is still autosaved;
   use Save case file, then Try again or reload.
 

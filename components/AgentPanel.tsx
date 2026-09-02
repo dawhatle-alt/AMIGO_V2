@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation';
 import { AlertTriangle, ChevronRight, Loader2, RefreshCw, Send, Sparkles, Trash2, WifiOff, X } from 'lucide-react';
 import { useCaseStore } from '@/lib/store/caseStore';
 import { buildCaseContext } from '@/lib/agent/context';
+import { inlineRuns, splitBlocks } from '@/lib/agent/markdown';
+import { CopyButton } from '@/components/ui/CopyButton';
 import type { ChatMessage } from '@/lib/types/case';
 
 /**
@@ -280,14 +282,44 @@ export function AgentPanel() {
 
 function Bubble({ message }: { message: ChatMessage }) {
   const user = message.role === 'user';
+  if (user) {
+    return (
+      <div className="flex justify-end">
+        <div className="max-w-[92%] whitespace-pre-wrap rounded-xl bg-primary px-3 py-2 text-[12px] leading-relaxed text-white">
+          {message.content}
+        </div>
+      </div>
+    );
+  }
+  // Advisor replies: fenced commands become copyable terminal blocks, **bold**
+  // and `code` render, everything else stays literal text.
   return (
-    <div className={`flex ${user ? 'justify-end' : 'justify-start'}`}>
-      <div
-        className={`max-w-[92%] whitespace-pre-wrap rounded-xl px-3 py-2 text-[12px] leading-relaxed ${
-          user ? 'bg-primary text-white' : 'border border-gray-200 bg-gray-50 text-gray-800'
-        }`}
-      >
-        {message.content}
+    <div className="flex justify-start">
+      <div className="max-w-[92%] space-y-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-[12px] leading-relaxed text-gray-800">
+        {splitBlocks(message.content).map((block, i) =>
+          block.type === 'code' ? (
+            <div key={i} className="relative">
+              <pre className="terminal pr-16">{block.text}</pre>
+              <CopyButton text={block.text} />
+            </div>
+          ) : (
+            <p key={i} className="whitespace-pre-wrap">
+              {inlineRuns(block.text).map((run, j) =>
+                run.kind === 'bold' ? (
+                  <strong key={j} className="font-semibold text-gray-900">
+                    {run.text}
+                  </strong>
+                ) : run.kind === 'code' ? (
+                  <code key={j} className="rounded bg-gray-200 px-1 font-mono text-[11px] text-gray-900">
+                    {run.text}
+                  </code>
+                ) : (
+                  <span key={j}>{run.text}</span>
+                ),
+              )}
+            </p>
+          ),
+        )}
       </div>
     </div>
   );

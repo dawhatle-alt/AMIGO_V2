@@ -171,13 +171,16 @@ describe('system prompt guardrails (FR-17)', () => {
 // ---------------------------------------------------------------------------
 
 const create = vi.fn();
+const ctor = vi.fn();
 
 vi.mock('@anthropic-ai/sdk', () => {
   class APIError extends Error {
     status: number | undefined;
-    constructor(status: number | undefined, message: string) {
+    error: unknown;
+    constructor(status: number | undefined, message: string, body?: unknown) {
       super(message);
       this.status = status;
+      this.error = body;
     }
   }
   class AuthenticationError extends APIError {}
@@ -191,7 +194,9 @@ vi.mock('@anthropic-ai/sdk', () => {
     static BadRequestError = BadRequestError;
     static APIConnectionError = APIConnectionError;
     messages = { create };
-    constructor(public opts: { apiKey: string }) {}
+    constructor(public opts: { apiKey: string; defaultHeaders?: Record<string, string> }) {
+      ctor(opts);
+    }
   }
   return { default: Anthropic };
 });
@@ -226,8 +231,10 @@ describe('/api/chat', () => {
   const env = { ...process.env };
   beforeEach(() => {
     create.mockReset();
+    ctor.mockReset();
     delete process.env.ANTHROPIC_API_KEY;
     delete process.env.ANTHROPIC_MODEL;
+    delete process.env.ANTHROPIC_WORKSPACE_ID;
   });
   afterEach(() => {
     process.env = { ...env };
@@ -329,6 +336,37 @@ describe('/api/chat', () => {
     r = await post(goodRequest());
     expect(r.status).toBe(400);
     expect(r.json['retryable']).toBe(false);
+  });
+
+  it('shows the API message, not the wrapped JSON, and names the workspace fix for identity-linked keys', async () => {
+    process.env.ANTHROPIC_API_KEY = 'sk-linked';
+    const Anthropic = (await import('@anthropic-ai/sdk')).default as unknown as {
+      BadRequestError: new (s: number, m: string, body?: unknown) => Error;
+    };
+    const body = (message: string) => ({ type: 'error', error: { type: 'invalid_request_error', message } });
+
+    create.mockRejectedValueOnce(new Anthropic.BadRequestError(400, '400 {"type":"error"}', body('model: not found')));
+    let r = await post(goodRequest());
+    expect(r.status).toBe(400);
+    expect(r.json['error']).toBe('The advisor rejected the request: model: not found');
+
+    create.mockRejectedValueOnce(
+      new Anthropic.BadRequestError(400, '400 {...}', body('anthropic-workspace-id is required when authenticating with an identity-linked API key')),
+    );
+    r = await post(goodRequest());
+    expect(r.status).toBe(503);
+    expect(r.json).toEqual({ error: expect.stringContaining('ANTHROPIC_WORKSPACE_ID'), retryable: false });
+  });
+
+  it('sends the workspace header only when ANTHROPIC_WORKSPACE_ID is set', async () => {
+    process.env.ANTHROPIC_API_KEY = 'sk-test';
+    create.mockResolvedValue(okMessage('ok'));
+    await post(goodRequest());
+    expect(ctor.mock.calls[0]?.[0]).toEqual({ apiKey: 'sk-test' });
+
+    process.env.ANTHROPIC_WORKSPACE_ID = ' wrkspc_123 ';
+    await post(goodRequest());
+    expect(ctor.mock.calls[1]?.[0]).toEqual({ apiKey: 'sk-test', defaultHeaders: { 'anthropic-workspace-id': 'wrkspc_123' } });
   });
 
   it('surfaces a refusal as a non-retryable message, not a reply', async () => {
