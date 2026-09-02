@@ -86,7 +86,7 @@ reference/      # (exists) read-only source material
 - [x] M5 Plan generation (gate passed 2026-09-01)
 - [x] M6 Runbook (gate passed 2026-09-01)
 - [x] M7 Export (gate passed 2026-09-02)
-- [x] M8 Polish & hardening (built 2026-09-02; gate evidence presented, approval pending)
+- [x] M8 Polish & hardening (gate passed 2026-09-02)
 
 Update the checklist above at every gate, and keep a short `DECISIONS.md` log
 (date, decision, why) for anything that deviates from the PRD.
