@@ -252,7 +252,7 @@ describe('gap walkthrough (M3 gate)', () => {
     expect(prompt).toContain('ctmsetown -action list');
     expect(prompt).toContain(gap.why);
 
-    useCaseStore.getState().askAgent({ kind: 'gap', id: gap.id, label: 'Gap 01', prompt });
+    useCaseStore.getState().askAgent({ kind: 'gap', id: gap.id, label: 'Gap 01', prompt, detail: '' });
     expect(useCaseStore.getState().agentOpen).toBe(true);
     expect(useCaseStore.getState().agentFocus?.prompt).toBe(prompt);
   });

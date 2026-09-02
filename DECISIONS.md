@@ -253,3 +253,49 @@ pages never linked).
 blockers (FR-10/FR-11), not on gap completion, so the walkthrough's footer
 offers "Continue with N open" and the plan gate shows the open count as
 information. Open gaps become open plan items at M5.
+
+## 2026-09-01 — M4: AI agent
+
+**Official SDK, server-side only.** `/api/chat` (`app/api/chat/route.ts`) is
+the one place `ANTHROPIC_API_KEY` is read; it uses `@anthropic-ai/sdk` with
+typed error classes mapped to the PRD's `{ error, retryable }` contract
+(auth → not configured / not retryable; rate-limit, connection, 5xx →
+retryable; bad request → not retryable). A `refusal` stop reason is returned
+as a non-retryable error, never as a reply. Answers that hit `max_tokens`
+(1000, per FR-15) are flagged `truncated` and the panel appends a
+"cut off — ask to continue" note.
+
+**Model default stays `claude-sonnet-4-6` per FR-15**, overridable with
+`ANTHROPIC_MODEL`. The current Claude API guidance recommends `claude-opus-5`
+as the default for new integrations; the PRD names Sonnet explicitly, so the
+PRD wins and switching is a one-line `.env.local` change. No extended
+thinking is requested: with a 1000-token budget, thinking tokens would eat
+the answer, and the prototype ran without it.
+
+**Context is built on the client, the prompt on the server (§7.2).**
+`lib/agent/context.ts` turns live case state into `CaseContext` — facts
+summary via `effectiveValue` (corrections win; unconfirmed INFERRED values are
+marked as such), `os_family` / `db_family` classification, screen, focused
+item (gap command / console path / why), progress line, outage clock —
+and `lib/agent/systemPrompt.ts` renders it. The syntax rule is derived, not
+hard-coded: Windows + MS SQL for the fixtures, UNIX + PostgreSQL for a Linux
+estate, "ask first" when unknown, per-host when mixed.
+
+**KA table is a data module** (`lib/agent/kaTable.ts`, `v22`): the
+prototype's KA_LIST plus the SKILL.md references. URLs only where the
+reference material records the sfdcid; the prompt tells the model to cite
+only those numbers and never invent links.
+
+**History lives in the case (FR-18).** `chat_history` is appended through the
+store (`agent.user` / `agent.assistant` audit entries) and sent in full on
+every call; a failed call keeps the user's message so Retry re-sends the same
+history. The advisor rail is usable only with a case open, because there is
+nowhere else to keep the conversation.
+
+**Gate evidence split.** The offline half (key absent → 503 not-configured →
+amber notice, app fully usable; malformed requests rejected; prompt assembly
+asserts Windows/MSSQL syntax, hosts, KA table, guardrails; SDK mocked to prove
+model/max_tokens/system/history wiring) is verified by tests and in the
+browser. The live-model half ("agent answers reflect the fixture environment")
+needs a real key in `.env.local`, which this workstation does not have —
+see the gate report.

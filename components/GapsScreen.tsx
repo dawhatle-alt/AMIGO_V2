@@ -28,6 +28,7 @@ import {
   windowMinutesFromAnswer,
 } from '@/lib/gaps/walkthrough';
 import { RefLink } from '@/components/ui/RefLink';
+import { gapFocus } from '@/lib/agent/context';
 import type { Answer, Gap, GapState } from '@/lib/types/case';
 
 /**
@@ -351,8 +352,9 @@ function GapCard({ index, gap, answer }: { index: number; gap: Gap; answer: Answ
                 askAgent({
                   kind: 'gap',
                   id: gap.id,
-                  label: `Gap ${String(index).padStart(2, '0')} · ${gap.question}`,
+                  label: gapFocus(gap, index).label,
                   prompt: askAgentPrompt(gap),
+                  detail: gapFocus(gap, index).detail,
                 })
               }
               className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-agent-soft px-3 py-1.5 text-[12px] font-medium text-agent hover:bg-violet-100"

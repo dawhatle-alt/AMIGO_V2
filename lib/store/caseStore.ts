@@ -1,7 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
-import type { ActivityEntry, CaseDocument } from '@/lib/types/case';
+import type { ActivityEntry, CaseDocument, ChatMessage } from '@/lib/types/case';
 import { createEmptyCase, type NewCaseInput } from '@/lib/case/emptyCase';
 import { downloadCaseFile, parseCaseFile } from '@/lib/case/serialize';
 import { clearActiveCase, loadActiveCase, saveActiveCase } from '@/lib/store/persist';
@@ -50,6 +50,10 @@ interface CaseState {
   askAgent: (focus: AgentFocus) => void;
   clearAgentFocus: () => void;
 
+  /** Persist an advisor exchange in the case (FR-18). */
+  appendChat: (messages: ChatMessage[]) => void;
+  clearChat: () => void;
+
   /** Apply a change and record it in the audit trail. */
   mutate: (action: string, detail: string, fn: (draft: CaseDocument) => void) => void;
   log: (action: string, detail: string) => void;
@@ -60,7 +64,10 @@ export interface AgentFocus {
   kind: 'gap' | 'runbook-step';
   id: string;
   label: string;
+  /** Text pre-filled into the advisor input (FR-14). */
   prompt: string;
+  /** Command / console path / failure guidance sent in the case context (FR-16). */
+  detail: string;
 }
 
 function clone(doc: CaseDocument): CaseDocument {
@@ -217,6 +224,26 @@ export const useCaseStore = create<CaseState>((set, get) => ({
     get().mutate('gap.answer_cleared', gapId, (draft) => {
       delete draft.answers[gapId];
       if (gapId === DOWNTIME_GAP_ID) draft.runbook.window_minutes = null;
+    });
+  },
+
+  appendChat: (messages) => {
+    if (messages.length === 0) return;
+    const last = messages[messages.length - 1] as ChatMessage;
+    get().mutate(
+      `agent.${last.role}`,
+      last.content.length > 120 ? `${last.content.slice(0, 117)}...` : last.content,
+      (draft) => {
+        draft.chat_history = [...draft.chat_history, ...messages];
+      },
+    );
+  },
+
+  clearChat: () => {
+    const n = get().doc?.chat_history.length ?? 0;
+    if (n === 0) return;
+    get().mutate('agent.cleared', `${n} message(s) removed from the advisor history`, (draft) => {
+      draft.chat_history = [];
     });
   },
 
