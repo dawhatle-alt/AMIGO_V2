@@ -210,3 +210,46 @@ now render as collapsible tables (10 rows shown, "Show all N") instead of
 joined prose; UNAVAILABLE/DISABLED/FAILED cells render red. Generic over any
 uniform record array, so future extractors get it for free.
 
+## 2026-09-01 — M3: Gap walkthrough
+
+**Gap state is derived, not stored.** PRD FR-13 says gaps move `open →
+answered`; the schema (§7.1) has no state field on `gaps[]`, only `answers`.
+So "answered" = a non-blank `answers[gap.id]`, computed by
+`lib/gaps/walkthrough.ts`. No schema change, no `schema_version` bump; the
+`gaps` array stays byte-identical to the parser's output and the golden
+reference.
+
+**Answers are free text; the runbook window budget is parsed from one of
+them (FR-13).** `saveAnswer('downtime_window', …)` sets
+`runbook.window_minutes` via `windowMinutesFromAnswer()`, which recognises
+explicit durations ("4 hours", "4h30m", "240 min") and clock ranges
+("22:00–02:00", "10pm to 2am", overnight wraps). An explicit duration wins
+over a range. Anything unrecognised leaves the budget `null` — the screen says
+so, and the audit-log line records it — rather than guessing. Clearing the
+answer clears the budget; a re-parse clears both (existing behaviour).
+The other decision gaps (target_version, upgrade_date, fallback_plan,
+change_freeze, test_plan) are labelled "Feeds plan · …" on their cards but are
+consumed at M5/M6, where the plan and runbook generators read `answers`
+directly — no second copy of the value is kept.
+
+**Blank answers clear.** Saving whitespace removes the answer (logged as
+`gap.answer_cleared`) instead of storing an empty string that would count as
+answered.
+
+**"Ask advisor about this gap" (FR-14) is wired now, sending is not (M4).**
+The store carries non-persisted `agentOpen` / `agentFocus`; the card opens the
+rail with a read-only pre-filled prompt (question, command or console path,
+why). M4 replaces the read-only input with the live one and adds the focus to
+the system prompt — the entry point does not change.
+
+**Shared `RefLink`.** Extracted from FactsScreen to `components/ui/RefLink.tsx`
+so gap cards and risk banners render references identically; padlocked links
+(documents.bmc.com / selfservice.bmc.com, or 🔒 in the label) get the
+Support-Central-login tooltip. A test asserts every fixture gap ref follows
+url-reference.md (padlock on login-required hosts; the dead EM/Server upgrade
+pages never linked).
+
+**Plan is not gated on gaps.** PRD gates plan generation on confirmations and
+blockers (FR-10/FR-11), not on gap completion, so the walkthrough's footer
+offers "Continue with N open" and the plan gate shows the open count as
+information. Open gaps become open plan items at M5.

@@ -7,7 +7,6 @@ import {
   AlertTriangle,
   Check,
   ChevronDown,
-  ExternalLink,
   Lock,
   Pencil,
   RotateCcw,
@@ -17,7 +16,8 @@ import { useCaseStore } from '@/lib/store/caseStore';
 import { groupFacts, pendingConfirmations, type FactRow } from '@/lib/facts/domains';
 import { canGeneratePlan, evaluateRisks, type RiskFlag } from '@/lib/rules/risk';
 import { isRecordArray, RecordTable } from '@/components/ui/RecordTable';
-import type { Confidence, Ref } from '@/lib/types/case';
+import { RefLink } from '@/components/ui/RefLink';
+import type { Confidence } from '@/lib/types/case';
 
 /**
  * S3 Facts Review (PRD §6, FR-9..FR-11).
@@ -170,20 +170,6 @@ function RiskBanner({ flag }: { flag: RiskFlag }) {
         </div>
       </div>
     </div>
-  );
-}
-
-function RefLink({ refItem }: { refItem: Ref }) {
-  return (
-    <a
-      href={refItem.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-1 text-[12px] font-medium text-primary hover:text-primary-dark hover:underline"
-    >
-      <ExternalLink size={11} />
-      {refItem.label}
-    </a>
   );
 }
 

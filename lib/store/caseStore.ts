@@ -6,6 +6,7 @@ import { createEmptyCase, type NewCaseInput } from '@/lib/case/emptyCase';
 import { downloadCaseFile, parseCaseFile } from '@/lib/case/serialize';
 import { clearActiveCase, loadActiveCase, saveActiveCase } from '@/lib/store/persist';
 import type { ParseResult } from '@/lib/parser';
+import { DOWNTIME_GAP_ID, formatMinutes, windowMinutesFromAnswer } from '@/lib/gaps/walkthrough';
 
 /**
  * Case state (PRD FR-1/FR-2). Every mutation goes through `mutate`, which
@@ -35,10 +36,31 @@ interface CaseState {
   /** Undo a confirmation so the value returns to the queue. */
   clearConfirmation: (key: string) => void;
 
+  /**
+   * Record a gap answer (FR-13). Whitespace-only clears it. The downtime-window
+   * answer also sets the runbook clock budget.
+   */
+  saveAnswer: (gapId: string, value: string) => void;
+  clearAnswer: (gapId: string) => void;
+
+  /** Agent rail UI state (not persisted). FR-14/FR-18 entry points set the focus. */
+  agentOpen: boolean;
+  agentFocus: AgentFocus | null;
+  setAgentOpen: (open: boolean) => void;
+  askAgent: (focus: AgentFocus) => void;
+  clearAgentFocus: () => void;
 
   /** Apply a change and record it in the audit trail. */
   mutate: (action: string, detail: string, fn: (draft: CaseDocument) => void) => void;
   log: (action: string, detail: string) => void;
+}
+
+/** What the advisor is being asked about — pre-fills the input (FR-14). */
+export interface AgentFocus {
+  kind: 'gap' | 'runbook-step';
+  id: string;
+  label: string;
+  prompt: string;
 }
 
 function clone(doc: CaseDocument): CaseDocument {
@@ -55,6 +77,8 @@ export const useCaseStore = create<CaseState>((set, get) => ({
   doc: null,
   hydrated: false,
   lastSavedAt: null,
+  agentOpen: false,
+  agentFocus: null,
 
   hydrate: () => {
     if (get().hydrated) return;
@@ -166,6 +190,39 @@ export const useCaseStore = create<CaseState>((set, get) => ({
       delete draft.confirmations[key];
     });
   },
+
+  saveAnswer: (gapId, value) => {
+    const doc = get().doc;
+    if (!doc || !doc.gaps.some((g) => g.id === gapId)) return;
+    const trimmed = value.trim();
+    if (trimmed === '') {
+      get().clearAnswer(gapId);
+      return;
+    }
+    const window = gapId === DOWNTIME_GAP_ID ? windowMinutesFromAnswer(trimmed) : undefined;
+    const suffix =
+      window === undefined
+        ? ''
+        : window === null
+          ? ' (no duration recognised - runbook window budget left unset)'
+          : ` (runbook window budget ${formatMinutes(window)})`;
+    get().mutate('gap.answered', `${gapId}: ${trimmed}${suffix}`, (draft) => {
+      draft.answers[gapId] = { value: trimmed, ts: new Date().toISOString() };
+      if (window !== undefined) draft.runbook.window_minutes = window;
+    });
+  },
+
+  clearAnswer: (gapId) => {
+    if (!get().doc?.answers[gapId]) return;
+    get().mutate('gap.answer_cleared', gapId, (draft) => {
+      delete draft.answers[gapId];
+      if (gapId === DOWNTIME_GAP_ID) draft.runbook.window_minutes = null;
+    });
+  },
+
+  setAgentOpen: (open) => set({ agentOpen: open }),
+  askAgent: (focus) => set({ agentFocus: focus, agentOpen: true }),
+  clearAgentFocus: () => set({ agentFocus: null }),
 
   mutate: (action, detail, fn) => {
     const current = get().doc;

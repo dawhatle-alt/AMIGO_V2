@@ -3,6 +3,7 @@
 import { AlertOctagon, Lock, ShieldCheck } from 'lucide-react';
 import { useCaseStore } from '@/lib/store/caseStore';
 import { planGenerationBlockers } from '@/lib/rules/risk';
+import { gapProgress } from '@/lib/gaps/walkthrough';
 import { MilestoneStub } from '@/components/ui/MilestoneStub';
 
 /**
@@ -13,6 +14,7 @@ export function PlanGateStub() {
   const doc = useCaseStore((s) => s.doc);
   const blockers = doc ? planGenerationBlockers(doc) : [];
   const hasFacts = doc ? Object.keys(doc.facts).length > 0 : false;
+  const gaps = doc ? gapProgress(doc) : null;
 
   return (
     <div className="space-y-4">
@@ -44,10 +46,18 @@ export function PlanGateStub() {
           <section className="card border-l-4 border-l-risk-clear bg-emerald-50/40 p-4">
             <div className="flex items-start gap-2.5">
               <ShieldCheck size={16} className="mt-0.5 shrink-0 text-risk-clear" />
-              <p className="text-[13px] text-gray-800">
-                <span className="font-semibold text-gray-900">Ready to generate.</span> No blockers
-                outstanding — plan generation itself arrives at M5.
-              </p>
+              <div className="text-[13px] text-gray-800">
+                <p>
+                  <span className="font-semibold text-gray-900">Ready to generate.</span> No
+                  blockers outstanding — plan generation itself arrives at M5.
+                </p>
+                {gaps && gaps.open > 0 && (
+                  <p className="mt-1 text-[12px] text-gray-600">
+                    {gaps.open} of {gaps.total} gaps still open — their answers feed the plan
+                    parameters, so the plan will carry them as open items until answered.
+                  </p>
+                )}
+              </div>
             </div>
           </section>
         ))}

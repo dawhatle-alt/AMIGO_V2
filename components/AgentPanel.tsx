@@ -1,17 +1,20 @@
 'use client';
 
-import { useState } from 'react';
-import { ChevronRight, Send, Sparkles } from 'lucide-react';
+import { ChevronRight, Send, Sparkles, X } from 'lucide-react';
 import { useCaseStore } from '@/lib/store/caseStore';
 
 /**
  * Agent panel — persistent collapsible right rail on every screen (PRD §6).
  *
- * M0 STUB: chrome and collapse behaviour only. No /api/chat route, no context
- * assembly, no message sending — that is M4 scope (PRD FR-15..19).
+ * STUB until M4: chrome, collapse behaviour and the FR-14/FR-18 entry points
+ * only. "Ask advisor about this gap" opens the rail and pre-fills the input
+ * with the gap's context; sending, /api/chat and the system prompt land at M4.
  */
 export function AgentPanel() {
-  const [open, setOpen] = useState(false);
+  const open = useCaseStore((s) => s.agentOpen);
+  const setOpen = useCaseStore((s) => s.setAgentOpen);
+  const focus = useCaseStore((s) => s.agentFocus);
+  const clearFocus = useCaseStore((s) => s.clearAgentFocus);
   const doc = useCaseStore((s) => s.doc);
 
   if (!open) {
@@ -50,10 +53,31 @@ export function AgentPanel() {
       <div className="flex-1 overflow-y-auto p-4">
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-[12px] leading-relaxed text-amber-800">
           <strong className="block font-semibold">Not wired yet — M4</strong>
-          The advisor is scaffolded at M0. Chat, case-context assembly and the
-          server-side <code className="font-mono">/api/chat</code> route land at
-          milestone M4 (PRD FR-15..19).
+          Chat, case-context assembly and the server-side{' '}
+          <code className="font-mono">/api/chat</code> route land at milestone M4 (PRD FR-15..19).
         </div>
+
+        {focus && (
+          <div className="mt-4 rounded-lg border border-violet-200 bg-agent-soft p-3">
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-agent">
+                Focused item
+              </p>
+              <button
+                type="button"
+                onClick={clearFocus}
+                aria-label="Clear focused item"
+                className="text-gray-400 hover:text-gray-700"
+              >
+                <X size={14} />
+              </button>
+            </div>
+            <p className="mt-1 text-[12px] font-medium text-gray-900">{focus.label}</p>
+            <p className="mt-1 text-[11px] text-gray-500">
+              This context travels with your question once the advisor is live.
+            </p>
+          </div>
+        )}
 
         <div className="mt-4 text-[12px] leading-relaxed text-gray-500">
           <p className="mb-1 font-semibold text-gray-700">Context it will carry</p>
@@ -74,10 +98,12 @@ export function AgentPanel() {
       <div className="border-t border-gray-200 p-3">
         <div className="flex gap-2">
           <textarea
-            rows={1}
-            disabled
+            rows={focus ? 6 : 1}
+            readOnly
+            value={focus?.prompt ?? ''}
             placeholder="Available at M4…"
-            className="flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-400 placeholder:text-gray-400"
+            aria-label="Advisor question"
+            className="flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 font-mono text-[11px] leading-snug text-gray-700 placeholder:text-gray-400"
           />
           <button
             type="button"
