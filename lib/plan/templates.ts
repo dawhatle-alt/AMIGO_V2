@@ -81,17 +81,17 @@ export interface ItemTemplate {
 // Rendering helpers shared by templates
 // ---------------------------------------------------------------------------
 
-const cmt = (os: OsFamily): string => (os === 'windows' ? 'REM' : '#');
+export const cmt = (os: OsFamily): string => (os === 'windows' ? 'REM' : '#');
 
 /**
  * FR-22 never guesses an OS: when the archive did not record one, every
  * command block opens with this line and is rendered in UNIX form so the
  * reader knows to translate — or to correct the OS fact first.
  */
-const OS_UNKNOWN_NOTE =
+export const OS_UNKNOWN_NOTE =
   '# OS NOT DETECTED in the archive — confirm Windows vs UNIX (or correct the OS fact) before running; shown in UNIX form.';
-const osNote = (os: OsFamily): string => (os === 'unknown' ? `${OS_UNKNOWN_NOTE}\n` : '');
-const host = (e: PlanEnv, c: Component): string => e[c].host ?? `<${c}_host>`;
+export const osNote = (os: OsFamily): string => (os === 'unknown' ? `${OS_UNKNOWN_NOTE}\n` : '');
+export const host = (e: PlanEnv, c: Component): string => e[c].host ?? `<${c}_host>`;
 const quote = (s: string): string => `"${s}"`;
 
 function fromFact(e: PlanEnv, key: string, status: Autofill['status'] = 'done'): Autofill | null {
@@ -121,7 +121,7 @@ function hasNotimpl(output: string): boolean {
 const yes = (v: string | undefined): boolean => /^\s*(y|yes|true|confirmed|done|in.place)/i.test(v ?? '');
 const no = (v: string | undefined): boolean => /^\s*(n|no|none|false)\b/i.test(v ?? '');
 
-function backupCmd(e: PlanEnv, c: Component): string {
+export function backupCmd(e: PlanEnv, c: Component): string {
   const os = e[c].osFamily;
   const C = cmt(os);
   const db = `<${c}_database>`;
@@ -167,7 +167,7 @@ function backupCmd(e: PlanEnv, c: Component): string {
   return lines.join('\n');
 }
 
-function restoreTestCmd(e: PlanEnv): string | null {
+export function restoreTestCmd(e: PlanEnv): string | null {
   const os = e.em.osFamily === 'unknown' ? e.server.osFamily : e.em.osFamily;
   const C = cmt(os);
   switch (e.db.family) {
@@ -196,21 +196,21 @@ function restoreTestCmd(e: PlanEnv): string | null {
   }
 }
 
-function checkReqCmd(e: PlanEnv, c: Component): string {
+export function checkReqCmd(e: PlanEnv, c: Component): string {
   const os = e[c].osFamily;
   return os === 'windows'
     ? `REM From the ${e[c].name} installation media on ${host(e, c)}:\ncd <install_media>\\CheckReq\ncheckReqRun.bat\nREM Lists any OS requirement or patch that is missing.`
     : `${osNote(os)}# From the ${e[c].name} installation media on ${host(e, c)}, as the ${c === 'em' ? 'EM' : 'Server'} owner:\ncd <install_media>/CheckReq\n./check_req.sh\n# Lists any OS requirement, kernel parameter or package that is missing.`;
 }
 
-function ctmsetownCmd(e: PlanEnv, c: Component): string {
+export function ctmsetownCmd(e: PlanEnv, c: Component): string {
   const os = e[c].osFamily;
   const C = cmt(os);
   const who = os === 'windows' ? `command prompt as the ${e[c].name} administrator` : `${e[c].name} owner account`;
   return `${osNote(os)}${C} On ${host(e, c)}, ${who}:\nctmsetown -action list\n${C} Zero NOTIMPL lines required — resolve any per KA 000354649 before the upgrade.`;
 }
 
-function upgradeReadyCmd(e: PlanEnv, c: Component): string {
+export function upgradeReadyCmd(e: PlanEnv, c: Component): string {
   const os = e[c].osFamily;
   const p = c === 'em' ? 'em' : 'ctm';
   return os === 'windows'
@@ -218,14 +218,14 @@ function upgradeReadyCmd(e: PlanEnv, c: Component): string {
     : `${osNote(os)}# From the ${e.target} installation media on ${host(e, c)}:\ncd <install_media>/UpgradeReady/upgrade_ready\n./is_upgrade_ready.sh -p ${p}`;
 }
 
-function javaCmd(e: PlanEnv, c: Component): string {
+export function javaCmd(e: PlanEnv, c: Component): string {
   const os = e[c].osFamily;
   return os === 'windows'
     ? `REM Machine-wide on ${host(e, c)}; open a NEW command window afterwards:\nsetx BMC_JAVA_HOME "C:\\Program Files\\Java\\jdk-17" /M\n"%BMC_JAVA_HOME%\\bin\\java" -version`
     : `${osNote(os)}# In the ${e[c].name} owner's profile on ${host(e, c)} (.profile / .bash_profile):\nexport BMC_JAVA_HOME=/usr/java/jdk-17\n$BMC_JAVA_HOME/bin/java -version`;
 }
 
-function stopCmd(e: PlanEnv): string {
+export function stopCmd(e: PlanEnv): string {
   const lines: string[] = [];
   if (e.em.present) {
     const C = cmt(e.em.osFamily);
@@ -248,7 +248,7 @@ function stopCmd(e: PlanEnv): string {
   return lines.join('\n');
 }
 
-function installerCmd(e: PlanEnv, c: Component): string {
+export function installerCmd(e: PlanEnv, c: Component): string {
   const os = e[c].osFamily;
   const which = c === 'em' ? 'Control-M/Enterprise Manager' : 'Control-M/Server';
   const extra = c === 'server' ? `\n${cmt(os)} Confirm BMC_INST_CTM_APIGTW_PORT=8393 is set in THIS session before launching.` : '';
@@ -257,14 +257,14 @@ function installerCmd(e: PlanEnv, c: Component): string {
     : `${osNote(os)}# From the ${e.target} installation media on ${host(e, c)}, as the ${c === 'em' ? 'EM' : 'Server'} owner:${extra}\n./setup.sh\n# Choose "${which}" and follow the prompts.`;
 }
 
-function patchRefs(e: PlanEnv, c: Component): Ref[] {
+export function patchRefs(e: PlanEnv, c: Component): Ref[] {
   if (e.target === '9.0.22') {
     return c === 'em' ? [REF.emPatch9022, REF.patches9022] : [REF.serverPatch9022, REF.patches9022];
   }
   return [REF.patches9021];
 }
 
-function latestPatch(e: PlanEnv, c: Component): string {
+export function latestPatch(e: PlanEnv, c: Component): string {
   if (e.target === '9.0.22') return c === 'em' ? '9.0.22.026' : '9.0.22.025';
   return `the latest ${e.target} patch`;
 }

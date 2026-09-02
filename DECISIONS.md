@@ -350,3 +350,45 @@ check_req, robocopy / tar, BACKUP/RESTORE DATABASE, pg_dump / pg_restore,
 expdp / impdp). The prototype's `em_ctl` / `ctmgetcm` were not carried over
 because they are not documented utilities. Model-default and export remain
 M7 concerns; the Export button is a labelled stub.
+
+## 2026-09-01 — M6: Runbook
+
+**Steps store schema fields only; content is rendered by id.** The
+`runbook.steps[]` schema (§7.1) has no command / expect / verify / fail
+fields, so those live in `lib/runbook/templates.ts` (RUNBOOK_VERSION v22)
+and are rendered at view time from the template keyed by step id
+(`stepContent`). Wording can change without a schema bump; a step id that
+disappears from the templates simply stops rendering content.
+
+**Generated with the plan, progress preserved.** `generatePlan()` also
+generates the runbook (PRD §4 step 6: one "Generate" action yields both).
+`mergeRunbook` keeps status and timestamps for surviving step ids and the
+clock start; a re-parse still resets both (existing behaviour).
+
+**Gates and PONR are steps with `type`, passed = `done`.** Gate checkboxes
+are UI-only — what the case records is that the gate was passed and when
+(`completed_at`). Gate 0's checks are derived live from the open blockers
+(risk flags + unanswered downtime / fallback decisions) so they cannot go
+stale. PONR needs no checklist: one explicit confirmation.
+
+**Sequential locking is strict.** Only the first unfinished item (gate, PONR
+or step) can be started, completed, skipped or passed — `canActOn` in the
+engine, enforced by the store, not just greyed out in the UI. N/A is allowed
+on the current step only.
+
+**Clock semantics.** `outage_started_at` is set when Gate 1 passes (never
+overwritten); `window_minutes` comes from the downtime-window answer via M3.
+Over-budget = remaining window < estimated remaining work, and it stops
+firing once every step is finished. Without a window budget the tiles show
+"—" and the screen links to the gap rather than assuming a duration.
+
+**Real finding:** for the fixture environment the phases after Gate 1
+estimate ~4 h 20 min, so a 4-hour window is over budget the moment the
+outage starts. The test asserts this instead of hiding it; the prototype had
+assumed 8 hours.
+
+**Rollback panel is always present**, collapsed to its first two rules with
+the full DB-correct procedure one click away (RESTORE DATABASE / pg_restore
+/ impdp, robocopy or tar back, source versions to start). Advisor entry
+points per step ("Ask", "Report error") pre-fill per the prototype's framing
+and send the step's command + failure guidance as focus detail (FR-16/18).

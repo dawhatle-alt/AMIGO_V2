@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import type { ActivityEntry, CaseDocument, ChatMessage, PlanItemStatus } from '@/lib/types/case';
 import { canGeneratePlan } from '@/lib/rules/risk';
 import { generatePlan, mergePlan, planStats, STATUS_CYCLE } from '@/lib/plan/generate';
+import { canActOn, generateRunbook, mergeRunbook } from '@/lib/runbook/engine';
 import { createEmptyCase, type NewCaseInput } from '@/lib/case/emptyCase';
 import { downloadCaseFile, parseCaseFile } from '@/lib/case/serialize';
 import { clearActiveCase, loadActiveCase, saveActiveCase } from '@/lib/store/persist';
@@ -63,6 +64,15 @@ interface CaseState {
   generatePlan: () => boolean;
   setPlanItemStatus: (id: string, status: PlanItemStatus) => void;
   cyclePlanItemStatus: (id: string) => void;
+
+  /**
+   * Runbook execution (FR-21). Sequential: only the current step can be
+   * started, completed, skipped or passed. Passing Gate 1 starts the clock.
+   */
+  startStep: (id: string) => void;
+  completeStep: (id: string) => void;
+  skipStep: (id: string) => void;
+  passGate: (id: string) => void;
 
   /** Apply a change and record it in the audit trail. */
   mutate: (action: string, detail: string, fn: (draft: CaseDocument) => void) => void;
@@ -269,9 +279,79 @@ export const useCaseStore = create<CaseState>((set, get) => ({
       `${stats.total} items, ${autoDone} auto-filled, ${stats.openBlockers} open blocker(s), ${stats.openWarnings} open warning(s)`,
       (draft) => {
         draft.plan = plan;
+        // The runbook is generated alongside the plan (PRD §4 step 6) and
+        // keeps any execution progress already recorded.
+        const freshRunbook = generateRunbook(doc);
+        draft.runbook = doc.runbook.steps.length > 0 ? mergeRunbook(doc.runbook, freshRunbook) : freshRunbook;
       },
     );
     return true;
+  },
+
+  startStep: (id) => {
+    const doc = get().doc;
+    const step = doc?.runbook.steps.find((s) => s.id === id);
+    if (!doc || !step || step.type !== 'step' || step.status !== 'pending' || !canActOn(doc.runbook, id)) return;
+    get().mutate('runbook.step_started', `${id}: ${step.title}`, (draft) => {
+      const t = draft.runbook.steps.find((s) => s.id === id);
+      if (t) {
+        t.status = 'active';
+        t.started_at = new Date().toISOString();
+      }
+    });
+  },
+
+  completeStep: (id) => {
+    const doc = get().doc;
+    const step = doc?.runbook.steps.find((s) => s.id === id);
+    if (!doc || !step || step.type !== 'step' || step.status !== 'active') return;
+    const now = new Date();
+    const took = step.started_at ? Math.max(1, Math.round((now.getTime() - new Date(step.started_at).getTime()) / 60000)) : null;
+    get().mutate(
+      'runbook.step_completed',
+      `${id}: ${step.title}${took !== null ? ` (took ${took} min, est ${step.est_min})` : ''}`,
+      (draft) => {
+        const t = draft.runbook.steps.find((s) => s.id === id);
+        if (t) {
+          t.status = 'done';
+          t.completed_at = now.toISOString();
+        }
+      },
+    );
+  },
+
+  skipStep: (id) => {
+    const doc = get().doc;
+    const step = doc?.runbook.steps.find((s) => s.id === id);
+    if (!doc || !step || step.type !== 'step' || step.status === 'done' || step.status === 'na' || !canActOn(doc.runbook, id)) return;
+    get().mutate('runbook.step_skipped', `${id}: ${step.title} marked N/A`, (draft) => {
+      const t = draft.runbook.steps.find((s) => s.id === id);
+      if (t) {
+        t.status = 'na';
+        t.completed_at = new Date().toISOString();
+      }
+    });
+  },
+
+  passGate: (id) => {
+    const doc = get().doc;
+    const step = doc?.runbook.steps.find((s) => s.id === id);
+    if (!doc || !step || step.type === 'step' || step.status === 'done' || !canActOn(doc.runbook, id)) return;
+    const now = new Date().toISOString();
+    const startsClock = id === 'gate1' && doc.runbook.outage_started_at === null;
+    get().mutate(
+      step.type === 'ponr' ? 'runbook.ponr_confirmed' : 'runbook.gate_passed',
+      `${id}: ${step.title}${startsClock ? ' — outage clock started' : ''}`,
+      (draft) => {
+        const t = draft.runbook.steps.find((s) => s.id === id);
+        if (t) {
+          t.status = 'done';
+          t.started_at = now;
+          t.completed_at = now;
+        }
+        if (startsClock) draft.runbook.outage_started_at = now;
+      },
+    );
   },
 
   setPlanItemStatus: (id, status) => {
