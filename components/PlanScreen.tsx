@@ -9,7 +9,6 @@ import {
   ChevronDown,
   ChevronRight,
   Circle,
-  Download,
   Lock,
   Minus,
   RefreshCw,
@@ -25,6 +24,7 @@ import { gapProgress } from '@/lib/gaps/walkthrough';
 import { REF } from '@/lib/plan/refs';
 import { RefLink } from '@/components/ui/RefLink';
 import { CopyButton } from '@/components/ui/CopyButton';
+import { ExportMenu } from '@/components/ExportMenu';
 import type { PlanItem, Risk } from '@/lib/types/case';
 
 /**
@@ -118,14 +118,7 @@ export function PlanScreen() {
               {hasPlan ? <RefreshCw size={13} /> : <Sparkles size={13} />}
               {hasPlan ? 'Regenerate plan' : 'Generate plan'}
             </button>
-            <button
-              type="button"
-              disabled
-              title="Standalone HTML export arrives at M7"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-[12px] font-medium text-gray-400"
-            >
-              <Download size={13} /> Export (M7)
-            </button>
+            <ExportMenu primary="plan" />
           </div>
         </div>
 

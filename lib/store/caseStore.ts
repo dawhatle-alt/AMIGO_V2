@@ -7,6 +7,11 @@ import { generatePlan, mergePlan, planStats, STATUS_CYCLE } from '@/lib/plan/gen
 import { canActOn, generateRunbook, mergeRunbook } from '@/lib/runbook/engine';
 import { createEmptyCase, type NewCaseInput } from '@/lib/case/emptyCase';
 import { downloadCaseFile, parseCaseFile } from '@/lib/case/serialize';
+import { downloadText } from '@/lib/export/download';
+import { planHtmlFileName, renderPlanHtml } from '@/lib/export/plan';
+import { renderRunbookHtml, runbookHtmlFileName } from '@/lib/export/runbook';
+import { serializeWizardAnswers, WIZARD_ANSWERS_FILE } from '@/lib/export/answers';
+import { runbookStats } from '@/lib/runbook/engine';
 import { clearActiveCase, loadActiveCase, saveActiveCase } from '@/lib/store/persist';
 import type { ParseResult } from '@/lib/parser';
 import { DOWNTIME_GAP_ID, formatMinutes, windowMinutesFromAnswer } from '@/lib/gaps/walkthrough';
@@ -28,6 +33,15 @@ interface CaseState {
   openCaseFromText: (text: string, fileName: string) => void;
   saveCaseToFile: () => void;
   closeCase: () => void;
+
+  /**
+   * One-click exports (FR-24): standalone HTML plan / runbook with the
+   * statuses and timestamps current at export time (FR-25), and the
+   * answers-only JSON. Each download is recorded in the audit trail.
+   */
+  exportPlanHtml: () => boolean;
+  exportRunbookHtml: () => boolean;
+  exportWizardAnswers: () => void;
 
   /** Replace facts/gaps/archives with a fresh parse result (M1 intake). */
   applyParseResult: (result: ParseResult) => void;
@@ -154,6 +168,41 @@ export const useCaseStore = create<CaseState>((set, get) => ({
   closeCase: () => {
     clearActiveCase();
     set({ doc: null, lastSavedAt: null });
+  },
+
+  exportPlanHtml: () => {
+    const doc = get().doc;
+    if (!doc || doc.plan.items.length === 0) return false;
+    const now = new Date();
+    const name = planHtmlFileName(doc, now);
+    downloadText(name, renderPlanHtml(doc, now), 'text/html;charset=utf-8');
+    const stats = planStats(doc.plan);
+    get().log('export.plan_html', `${name} — ${stats.total} items, ${stats.pct}% done at export`);
+    return true;
+  },
+
+  exportRunbookHtml: () => {
+    const doc = get().doc;
+    if (!doc || doc.runbook.steps.length === 0) return false;
+    const now = new Date();
+    const name = runbookHtmlFileName(doc, now);
+    downloadText(name, renderRunbookHtml(doc, now), 'text/html;charset=utf-8');
+    const stats = runbookStats(doc.runbook);
+    get().log(
+      'export.runbook_html',
+      `${name} — ${stats.done}/${stats.total} steps done at export${doc.runbook.outage_started_at ? ', outage clock running' : ''}`,
+    );
+    return true;
+  },
+
+  exportWizardAnswers: () => {
+    const doc = get().doc;
+    if (!doc) return;
+    downloadText(WIZARD_ANSWERS_FILE, serializeWizardAnswers(doc), 'application/json');
+    get().log(
+      'export.wizard_answers',
+      `${WIZARD_ANSWERS_FILE} — ${Object.keys(doc.confirmations).length} confirmation(s), ${Object.keys(doc.answers).length} answer(s)`,
+    );
   },
 
   applyParseResult: (result) => {

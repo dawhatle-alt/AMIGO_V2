@@ -1,5 +1,6 @@
 import { SCHEMA_VERSION, type CaseDocument } from '@/lib/types/case';
 import { caseSlug } from '@/lib/case/emptyCase';
+import { downloadText } from '@/lib/export/download';
 
 /**
  * Case-file round-trip (PRD FR-1). Save writes the whole document; open parses
@@ -66,13 +67,5 @@ export function caseFileName(doc: CaseDocument): string {
 
 /** Browser-only: trigger a download of the case document. */
 export function downloadCaseFile(doc: CaseDocument): void {
-  const blob = new Blob([serializeCaseFile(doc)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = caseFileName(doc);
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  downloadText(caseFileName(doc), serializeCaseFile(doc), 'application/json');
 }

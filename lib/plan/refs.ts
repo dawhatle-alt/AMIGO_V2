@@ -61,3 +61,8 @@ export function ka(id: string): Ref | null {
 export function refs(...items: (Ref | null | undefined)[]): Ref[] {
   return items.filter((r): r is Ref => !!r);
 }
+
+/** True when the link needs a BMC Support Central login (url-reference.md: 🔒). */
+export function isLoginRequired(ref: Ref): boolean {
+  return ref.label.includes('🔒') || /https:\/\/(documents|selfservice)\.bmc\.com\//.test(ref.url);
+}

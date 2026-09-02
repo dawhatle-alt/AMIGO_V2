@@ -1,5 +1,8 @@
 import { ExternalLink } from 'lucide-react';
 import type { Ref } from '@/lib/types/case';
+import { isLoginRequired } from '@/lib/plan/refs';
+
+export { isLoginRequired };
 
 /**
  * Documentation / KA link. Links to BMC Support Central content carry the
@@ -20,8 +23,4 @@ export function RefLink({ refItem }: { refItem: Ref }) {
       {refItem.label}
     </a>
   );
-}
-
-export function isLoginRequired(ref: Ref): boolean {
-  return ref.label.includes('🔒') || /https:\/\/(documents|selfservice)\.bmc\.com\//.test(ref.url);
 }

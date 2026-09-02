@@ -392,3 +392,48 @@ the full DB-correct procedure one click away (RESTORE DATABASE / pg_restore
 / impdp, robocopy or tar back, source versions to start). Advisor entry
 points per step ("Ask", "Report error") pre-fill per the prototype's framing
 and send the step's command + failure guidance as focus detail (FR-16/18).
+
+## 2026-09-01 — M7: Export
+
+**Exports render from the case, not from the screens.** `lib/export/plan.ts`
+and `lib/export/runbook.ts` build a compact data model from the case
+(statuses and timestamps as they are at export time, FR-25) and embed it as
+JSON in a single HTML file with inline CSS and a small inline script that
+re-implements the interaction rules — plan: status cycling, filters,
+sections, copy, text download; runbook: sequential locking, gate
+checklists, PONR, Gate 1 starting the clock, the over-budget rule, the
+rollback panel. No React, no fonts, no network: the file works by
+double-click in a clean browser. The look is the approved prototype's.
+
+**Fonts are not embedded.** The app self-hosts IBM Plex; the export falls
+back to system fonts when Plex is not installed rather than adding ~200 KB
+of base64 woff2 to every file. Revisit if the exports are customer-facing.
+
+**Progress made inside an exported file stays in that browser.** Cycling a
+status or completing a step in the exported HTML is remembered in
+localStorage under a key unique to that export (case slug + export time), so
+re-opening the file resumes, "Reset" returns to the exported state, and two
+exports never share progress. Nothing flows back into the case
+automatically — the case file remains the source of truth (PRD §7.1).
+
+**Inline scripts run inside a function scope.** Found in the real browser,
+not in jsdom: a top-level `var status` binds to `window.status`, which
+Chromium coerces to a string, so statuses silently never stuck. All export
+scripts are now wrapped in an IIFE and a test asserts it. Embedded JSON
+escapes `<` (so `</script>` / `<!--` cannot end the block) and U+2028/2029.
+
+**`amigo-wizard-answers.json` uses the case.json shapes.** PRD FR-24d says
+"answers + confirmations only"; the file carries `confirmations` and
+`answers` exactly as in case.json (so they merge back losslessly) plus the
+gap wizard's `environment` header (hosts + versions) and a `format` /
+`source` stamp. The skill's own wizard emits plain strings; its consumer is
+conversational, so no adapter was added.
+
+**Advisor is absent from the exports.** It needs the app's /api/chat route;
+the exported runbook says so in its SEV-1 card instead of showing dead
+buttons.
+
+**Test harness:** `jsdom` (devDependency) loads the exported files with
+scripts enabled so the tests exercise the same inline JS a double-click
+runs. The Browser pane renders on-disk files as static snapshots, so the
+real-browser check was done by serving the same bytes over the dev server.

@@ -19,7 +19,7 @@ import {
   Terminal,
 } from 'lucide-react';
 import { useCaseStore } from '@/lib/store/caseStore';
-import { buildPlanEnv } from '@/lib/plan/env';
+import { buildPlanEnv, envSummaryLine } from '@/lib/plan/env';
 import { PHASES, rollbackTarget } from '@/lib/runbook/templates';
 import {
   actualMinutes,
@@ -37,6 +37,7 @@ import {
 } from '@/lib/runbook/engine';
 import { RefLink } from '@/components/ui/RefLink';
 import { CopyButton } from '@/components/ui/CopyButton';
+import { ExportMenu } from '@/components/ExportMenu';
 import type { Risk, RunbookStep } from '@/lib/types/case';
 
 /**
@@ -97,16 +98,7 @@ export function RunbookScreen() {
     );
   }
 
-  const envLine = [
-    [env.em.present ? `EM ${env.em.version ?? '?'}` : null, env.server.present ? `Server ${env.server.version ?? '?'}` : null]
-      .filter(Boolean)
-      .join(' + ') + ` → ${env.target}`,
-    env.sameHost === true ? 'same host' : env.sameHost === false ? 'separate hosts' : null,
-    env.em.osName ?? env.server.osName ?? 'OS not detected',
-    env.db.type?.split('(')[0]?.trim() ?? null,
-  ]
-    .filter(Boolean)
-    .join(' | ');
+  const envLine = envSummaryLine(env);
 
   function ask(step: RunbookStep, content: StepContent, mode: 'ask' | 'error') {
     if (!doc) return;
@@ -132,6 +124,8 @@ export function RunbookScreen() {
               <p className="mt-0.5 text-[12px] text-gray-600">{envLine}</p>
             </div>
           </div>
+          <div className="flex items-center gap-2">
+          <ExportMenu primary="runbook" />
           <button
             type="button"
             onClick={() => setRollbackOpen((v) => !v)}
@@ -139,6 +133,7 @@ export function RunbookScreen() {
           >
             <RotateCcw size={14} /> {rollbackOpen ? 'Hide rollback' : 'Rollback'}
           </button>
+          </div>
         </div>
 
         {/* FR-21: the rollback panel is always present; the full procedure expands. */}

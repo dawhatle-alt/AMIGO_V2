@@ -234,3 +234,17 @@ function describe(value: unknown): string {
   if (Array.isArray(value)) return value.map((v) => (typeof v === 'object' ? JSON.stringify(v) : String(v))).join(', ');
   return JSON.stringify(value);
 }
+
+/** One-line environment summary for headers and exports, e.g. "EM 9.0.21.300 + Server 9.0.21.302 → 9.0.22 | same host | Windows Server 2019 | MS SQL". */
+export function envSummaryLine(e: PlanEnv): string {
+  return [
+    [e.em.present ? `EM ${e.em.version ?? '?'}` : null, e.server.present ? `Server ${e.server.version ?? '?'}` : null]
+      .filter(Boolean)
+      .join(' + ') + ` → ${e.target}`,
+    e.sameHost === true ? 'same host' : e.sameHost === false ? 'separate hosts' : null,
+    e.em.osName ?? e.server.osName ?? 'OS not detected',
+    e.db.type?.split('(')[0]?.trim() ?? null,
+  ]
+    .filter(Boolean)
+    .join(' | ');
+}
