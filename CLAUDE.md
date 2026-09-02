@@ -82,8 +82,8 @@ reference/      # (exists) read-only source material
 - [x] M1 Intake & parser port (golden test) (gate passed 2026-09-01)
 - [x] M2 Facts review & confirm (gate passed 2026-09-01)
 - [x] M3 Gap walkthrough (gate passed 2026-09-01)
-- [x] M4 AI agent (built 2026-09-01; offline half of the gate verified, live-model half awaits a key)
-- [ ] M5 Plan generation
+- [x] M4 AI agent (gate passed 2026-09-01; live-model exchange still awaits a key)
+- [x] M5 Plan generation (built 2026-09-01; gate evidence presented, approval pending)
 - [ ] M6 Runbook
 - [ ] M7 Export
 - [ ] M8 Polish & hardening

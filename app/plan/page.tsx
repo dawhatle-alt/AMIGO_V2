@@ -1,5 +1,5 @@
-import { PlanGateStub } from '@/components/PlanGateStub';
+import { PlanScreen } from '@/components/PlanScreen';
 
 export default function PlanPage() {
-  return <PlanGateStub />;
+  return <PlanScreen />;
 }

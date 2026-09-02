@@ -1,7 +1,9 @@
 'use client';
 
 import { create } from 'zustand';
-import type { ActivityEntry, CaseDocument, ChatMessage } from '@/lib/types/case';
+import type { ActivityEntry, CaseDocument, ChatMessage, PlanItemStatus } from '@/lib/types/case';
+import { canGeneratePlan } from '@/lib/rules/risk';
+import { generatePlan, mergePlan, planStats, STATUS_CYCLE } from '@/lib/plan/generate';
 import { createEmptyCase, type NewCaseInput } from '@/lib/case/emptyCase';
 import { downloadCaseFile, parseCaseFile } from '@/lib/case/serialize';
 import { clearActiveCase, loadActiveCase, saveActiveCase } from '@/lib/store/persist';
@@ -53,6 +55,14 @@ interface CaseState {
   /** Persist an advisor exchange in the case (FR-18). */
   appendChat: (messages: ChatMessage[]) => void;
   clearChat: () => void;
+
+  /**
+   * (Re)generate the Upgrade Plan (FR-20). Refused while plan generation is
+   * blocked (FR-10/FR-11). Regeneration keeps the TSA's done / N/A marks.
+   */
+  generatePlan: () => boolean;
+  setPlanItemStatus: (id: string, status: PlanItemStatus) => void;
+  cyclePlanItemStatus: (id: string) => void;
 
   /** Apply a change and record it in the audit trail. */
   mutate: (action: string, detail: string, fn: (draft: CaseDocument) => void) => void;
@@ -245,6 +255,38 @@ export const useCaseStore = create<CaseState>((set, get) => ({
     get().mutate('agent.cleared', `${n} message(s) removed from the advisor history`, (draft) => {
       draft.chat_history = [];
     });
+  },
+
+  generatePlan: () => {
+    const doc = get().doc;
+    if (!doc || !canGeneratePlan(doc)) return false;
+    const fresh = generatePlan(doc);
+    const plan = doc.plan.items.length > 0 ? mergePlan(doc.plan, fresh) : fresh;
+    const stats = planStats(plan);
+    const autoDone = plan.items.filter((i) => i.autofilled_from !== null).length;
+    get().mutate(
+      doc.plan.items.length > 0 ? 'plan.regenerated' : 'plan.generated',
+      `${stats.total} items, ${autoDone} auto-filled, ${stats.openBlockers} open blocker(s), ${stats.openWarnings} open warning(s)`,
+      (draft) => {
+        draft.plan = plan;
+      },
+    );
+    return true;
+  },
+
+  setPlanItemStatus: (id, status) => {
+    const item = get().doc?.plan.items.find((i) => i.id === id);
+    if (!item || item.status === status) return;
+    get().mutate('plan.item_status', `${id}: ${item.status} -> ${status} (${item.text})`, (draft) => {
+      const target = draft.plan.items.find((i) => i.id === id);
+      if (target) target.status = status;
+    });
+  },
+
+  cyclePlanItemStatus: (id) => {
+    const item = get().doc?.plan.items.find((i) => i.id === id);
+    if (!item) return;
+    get().setPlanItemStatus(id, STATUS_CYCLE[item.status]);
   },
 
   setAgentOpen: (open) => set({ agentOpen: open }),

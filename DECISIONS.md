@@ -299,3 +299,54 @@ model/max_tokens/system/history wiring) is verified by tests and in the
 browser. The live-model half ("agent answers reflect the fixture environment")
 needs a real key in `.env.local`, which this workstation does not have —
 see the gate report.
+
+## 2026-09-01 — M5: Plan generation
+
+**Templates are functions of a typed environment, not string placeholders.**
+`lib/plan/templates.ts` (TEMPLATES_VERSION v22) ports the EM/Server
+checklists and upgrade-plan templates; each item's `text`/`detail`/`cmd`/
+`refs`/`risk` may be a function of `PlanEnv` (`lib/plan/env.ts`), which reads
+the case once through `effectiveValue` so TSA corrections win. It is still a
+data module — components render `PlanItem`s and never hold content — but the
+tailoring (FR-22) lives next to the content it tailors instead of in a
+separate rules table that would have to be kept in sync with it.
+
+**N/A items are suppressed at generation, not stored.** A template whose
+`when(env)` is false is not generated. This is what "N/A items suppressed,
+not shown" means in FR-22; the `na` status remains available for the TSA to
+mark an item not applicable by hand.
+
+**Unknown OS is stated, never guessed.** When the archive has no OS fact
+(the server-only Linux fixture has none), every command block opens with an
+explicit "OS NOT DETECTED … shown in UNIX form" line rather than silently
+picking a syntax. Correcting the OS fact on Facts Review re-tailors the plan.
+
+**Auto-Done carries provenance in `detail`, not a new schema field.** The
+schema's `autofilled_from` holds the fact key / gap id; the human note
+("Auto-filled: EM disk free = … (from hcu_SBCMEM31W.zip:…)") is appended to
+`detail` after a blank line so exports and the advisor see it without a
+schema change. The M5 test treats that note as provenance, not plan content
+— it is the one place the fixture's "MS SQL (by elimination — no
+PostgreSQL/Oracle sections in archive)" value is quoted.
+
+**Risk flags are pinned, decision gaps become risk items.** Every
+`evaluateRisks` flag becomes a Blockers & Risks item (`risk_<flag id>`) with
+the flag's refs and evidence; the interview-only decisions (downtime window,
+fallback plan, change freeze, test plan, EM clients, CMs, migration, cloud)
+become items only while unanswered or answered adversely.
+
+**Regeneration keeps TSA progress.** `mergePlan` preserves a done/N/A mark
+on an item the fresh generation would only call "todo"; an auto-filled
+status always wins because it reflects new evidence. Statuses and the
+generated plan live in `plan.items` and round-trip through case.json.
+
+**Real finding on the golden fixture:** EM 9.0.21.300 is lower than Server
+9.0.21.302, so "EM is the same or higher version than the Server" is a
+warning, not auto-done. The test asserts that rather than papering over it.
+
+**Commands use well-known utilities only** (setup.exe / setup.sh, stop_all,
+shut_ctm / shut_ca, ctm_menu, ctmping, ctmsetown, is_upgrade_ready,
+check_req, robocopy / tar, BACKUP/RESTORE DATABASE, pg_dump / pg_restore,
+expdp / impdp). The prototype's `em_ctl` / `ctmgetcm` were not carried over
+because they are not documented utilities. Model-default and export remain
+M7 concerns; the Export button is a labelled stub.
