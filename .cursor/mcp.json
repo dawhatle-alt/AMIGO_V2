@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "salesforce-bmc": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@salesforce/mcp@latest",
+        "--orgs",
+        "bmc",
+        "--toolsets",
+        "data",
+        "--tools",
+        "run_soql_query"
+      ]
+    }
+  }
+}
