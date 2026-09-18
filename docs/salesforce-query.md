@@ -125,6 +125,24 @@ branch-independent:
 
 Project config wins when a server name appears in both.
 
+### "This PC" is grayed out in a new chat
+
+Cursor offers a local target only when it has a local clone of the selected repo
+to point at. The option is disabled when the window is attached to a cloud
+agent's workspace, when no folder is open, or when you are on cursor.com rather
+than Cursor Desktop.
+
+Clone the repo to your own disk, then open that folder:
+
+```powershell
+cd $env:USERPROFILE
+git clone https://github.com/dawhatle-alt/AMIGO_V2.git
+cd AMIGO_V2
+```
+
+In Cursor Desktop: **File → New Window**, then **File → Open Folder** on that
+path. New chats in that window run locally.
+
 ### The agent answers from the web instead of the org
 
 It has no Salesforce tool, so it searched instead. In order of likelihood:
