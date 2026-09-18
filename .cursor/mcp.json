@@ -1,6 +1,7 @@
 {
   "mcpServers": {
     "salesforce-bmc": {
+      "type": "stdio",
       "command": "npx",
       "args": [
         "-y",

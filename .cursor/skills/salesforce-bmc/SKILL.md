@@ -20,7 +20,9 @@ sf data query --target-org bmc --query "SELECT Id FROM Knowledge__kav WHERE Publ
 
 If auth fails, tell the user to run `sf org login --alias bmc` (or `sf org login web --alias bmc`) and retry.
 
-Enable the MCP server in Cursor Settings → MCP. Config lives in [`.cursor/mcp.json`](../../mcp.json) (`--orgs bmc`, data toolset, `run_soql_query` only).
+Enable the MCP server in Cursor **Customize → MCPs** (restart Cursor after the config changes). Config lives in [`.cursor/mcp.json`](../../mcp.json) (`--orgs bmc`, data toolset, `run_soql_query` only).
+
+If `salesforce-bmc` is missing from Customize → MCPs, or fails to start, see the setup and troubleshooting guide at [`docs/salesforce-query.md`](../../../docs/salesforce-query.md).
 
 ## Which object
 
