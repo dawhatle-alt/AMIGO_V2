@@ -47,9 +47,25 @@ alias `bmc` with only the read-only `run_soql_query` tool:
 
 First launch downloads `@salesforce/mcp`, which takes up to a minute.
 
+## Local chats only
+
+This server runs `npx` on your machine and authenticates with your local
+Salesforce CLI session, so it works only in **local** agent chats.
+
+Cloud agents (the environment dropdown under the chat input set to Cloud, or
+runs at cursor.com/agents) execute on Cursor VMs. They do not read
+`~/.cursor/mcp.json`, have no Salesforce CLI, and have no `bmc` session — asked
+about KAs, they fall back to public web results instead of your org. Cloud MCP
+comes only from the agents dropdown or Dashboard → Plugins & MCPs.
+
+Giving cloud agents real Salesforce access would mean switching to
+[Salesforce Hosted MCP Servers](https://developer.salesforce.com/docs/platform/hosted-mcp-servers/guide/hosted-mcp-servers-overview.html)
+with an External Client App and OAuth credentials, since CLI auth cannot follow
+you into a VM.
+
 ## Use it
 
-Ask the agent directly, for example:
+Use **Agent** mode in a local chat. Ask directly, for example:
 
 - find Control-M knowledge articles with "New Day" in the title
 - look up KA 000354649
@@ -108,6 +124,21 @@ branch-independent:
 - macOS / Linux: `~/.cursor/mcp.json`
 
 Project config wins when a server name appears in both.
+
+### The agent answers from the web instead of the org
+
+It has no Salesforce tool, so it searched instead. In order of likelihood:
+
+1. **The chat is a cloud agent.** Check the environment dropdown under the chat
+   input and switch it to local. See "Local chats only" above.
+2. **The chat is in Ask mode.** Ask is read-only; switch to Agent.
+3. **The tool is toggled off.** Expand **Available Tools** in the chat and
+   confirm `run_soql_query` is listed and enabled.
+4. **The server never started.** Customize → MCPs shows it disconnected; read
+   Output → MCP Logs.
+
+To test which case you are in, ask the chat to list its available tools. A
+correctly wired local chat names `run_soql_query`.
 
 ### Server is listed but fails to start
 
